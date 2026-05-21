@@ -39,6 +39,7 @@
   },
   "private": true,
   "devDependencies": {
-    "babel-preset-expo": "^55.0.21"
+    "babel-preset-expo": "^55.0.21",
+    "vite": "^8.0.14"
   }
 }
