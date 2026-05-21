@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "checkJs": false
+  },
+  "include": ["App.jsx", "index.js", "src/**/*"]
+}

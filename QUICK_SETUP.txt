@@ -1,0 +1,37 @@
+═══════════════════════════════════════════════════════════════
+  QUICK SETUP - Commands for Teammates to Pull Changes
+═══════════════════════════════════════════════════════════════
+
+📥 PULL LATEST CHANGES:
+───────────────────────────────────────────────────────────────
+git pull origin main
+npm install
+npx expo start --clear
+───────────────────────────────────────────────────────────────
+
+That's it! These 3 commands will:
+✅ Pull the latest code
+✅ Install new dependencies (@react-native-async-storage/async-storage)
+✅ Start the app with cleared cache
+
+═══════════════════════════════════════════════════════════════
+
+📱 PLATFORM-SPECIFIC:
+───────────────────────────────────────────────────────────────
+iOS:     npx expo start --clear --ios
+Android: npx expo start --clear --android
+Web:     npx expo start --clear --web
+───────────────────────────────────────────────────────────────
+
+═══════════════════════════════════════════════════════════════
+
+🆘 IF ISSUES OCCUR:
+───────────────────────────────────────────────────────────────
+rm -rf node_modules
+npm install
+npx expo start --clear
+───────────────────────────────────────────────────────────────
+
+For detailed instructions, see: PULL_CHANGES_GUIDE.md
+
+═══════════════════════════════════════════════════════════════
