@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator, Linking } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -29,7 +29,7 @@ function useTabBarHeight() {
 // For Google Maps: Enable APIs at https://console.cloud.google.com/apis/library
 // Required APIs: Maps JavaScript API, Maps SDK for Android/iOS, Directions API
 const GOOGLE_MAPS_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY || '';
-const MAP_PROVIDER = GOOGLE_MAPS_KEY ? PROVIDER_GOOGLE : PROVIDER_DEFAULT;
+const MAP_PROVIDER = GOOGLE_MAPS_KEY ? PROVIDER_GOOGLE : undefined;
 
 export function LiveMapScreen() {
   const insets = useSafeAreaInsets();

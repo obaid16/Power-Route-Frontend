@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   ScrollView, Text, View, Pressable,
-  StyleSheet, ActivityIndicator, TextInput, Image,
+  StyleSheet, ActivityIndicator, TextInput, Image, Alert, Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -72,6 +72,7 @@ export function HomeDashboardScreen() {
               </Text>
             </View>
 
+
             {/* Links */}
             <View style={styles.navLinks}>
               {[
@@ -130,9 +131,24 @@ export function HomeDashboardScreen() {
 
           <View style={styles.headerActions}>
             <Pressable
-              onPress={async () => {
-                await logout();
-                navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+              onPress={() => {
+                if (Platform.OS === 'web') {
+                  if (window.confirm("Are you sure you want to logout?")) {
+                    logout().then(() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }));
+                  }
+                } else {
+                  Alert.alert(
+                    "Logout",
+                    "Are you sure you want to logout?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Logout", style: "destructive", onPress: async () => {
+                        await logout();
+                        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                      }}
+                    ]
+                  );
+                }
               }}
               style={({ pressed }) => [styles.iconBtn, { borderColor: C.border, opacity: pressed ? 0.7 : 1 }]}
             >
