@@ -47,7 +47,7 @@ export function VoltDataProvider({ children }) {
     
     // IP-based Fallback
     try {
-      const res = await fetch('https://freeipapi.com/api/json');
+      const res = await fetch('https://ipapi.co/json/');
       const data = await res.json();
       if (data && data.latitude && data.longitude) {
         const c = { latitude: Number(data.latitude), longitude: Number(data.longitude) };
