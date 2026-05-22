@@ -11,7 +11,8 @@ function stripTrailingSlash(url) {
 }
 
 export function getApiOrigin() {
-  return 'http://192.168.13.224:5001';
+  // Use the deployed backend URL
+  return 'https://power-route-backend.onrender.com';
 }
 
 export function getApiPrefix() {
