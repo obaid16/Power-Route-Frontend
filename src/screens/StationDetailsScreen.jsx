@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View, ActivityIndicator } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -139,6 +139,57 @@ export function StationDetailsScreen() {
         contentContainerStyle={[contentContainerStyle, { paddingTop: insets.top + 8, paddingBottom: 40 }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Premium Hero Panel ──────────────────────────────────────────── */}
+        <View style={{
+          marginBottom: 20,
+          borderRadius: 20,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: colors.border,
+          height: isLargeScreen ? 200 : 160,
+          backgroundColor: isDark ? colors.bg : '#f1f5f9',
+        }}>
+          {/* Gradient background */}
+          <View style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: isDark ? colors.bgElevated : '#eef2f7',
+          }}>
+            {/* Decorative glow orbs */}
+            <View style={{ position: 'absolute', top: -30, right: -30, width: 160, height: 160, borderRadius: 80, backgroundColor: `${colors.accentCyan}15` }} />
+            <View style={{ position: 'absolute', bottom: -40, left: -20, width: 120, height: 120, borderRadius: 60, backgroundColor: `${colors.accentCyan}10` }} />
+          </View>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <View style={{
+              width: isLargeScreen ? 72 : 60, height: isLargeScreen ? 72 : 60, borderRadius: isLargeScreen ? 36 : 30,
+              backgroundColor: `${colors.accentCyan}20`,
+              borderWidth: 2, borderColor: `${colors.accentCyan}50`,
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Ionicons name="flash" size={isLargeScreen ? 34 : 28} color={colors.accentCyan} />
+            </View>
+            <Text style={{ fontWeight: '900', color: colors.text, fontSize: scaleFont(isLargeScreen ? 20 : 17), letterSpacing: -0.5 }} numberOfLines={1}>
+              {station.name}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="location-outline" size={12} color={colors.textMuted} />
+              <Text style={{ color: colors.textMuted, fontSize: scaleFont(12) }} numberOfLines={1}>
+                {station.address}
+              </Text>
+            </View>
+            {/* Badges */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: `${colors.accentCyan}15`, borderWidth: 1, borderColor: `${colors.accentCyan}30` }}>
+                <Ionicons name="time-outline" size={11} color={colors.accentCyan} />
+                <Text style={{ color: colors.accentCyan, fontSize: scaleFont(11), fontWeight: '700' }}>Open 24 Hours</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: `${colors.warning}15`, borderWidth: 1, borderColor: `${colors.warning}30` }}>
+                <Ionicons name="star" size={11} color={colors.warning} />
+                <Text style={{ color: colors.warning, fontSize: scaleFont(11), fontWeight: '700' }}>{station.rating?.toFixed(1)} Rating</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
           <View style={{ flex: 1 }}>
@@ -158,7 +209,7 @@ export function StationDetailsScreen() {
           <Pressable
             onPress={() => navigation.navigate('MainTabs', { screen: 'Map', params: { targetId: stationId } })}
             style={({ pressed }) => ({
-              backgroundColor: isDark ? 'rgba(0,217,126,0.12)' : 'rgba(0,106,78,0.12)',
+              backgroundColor: `${colors.accentCyan}15`,
               borderColor: colors.accentCyan,
               borderWidth: 1,
               paddingHorizontal: isLargeScreen ? 16 : 14,
@@ -178,19 +229,30 @@ export function StationDetailsScreen() {
         </View>
 
         {/* Info chips */}
-        <GlassCard style={{ marginTop: 24 }} padding={isLargeScreen ? 20 : 18}>
+        <GlassCard style={{ marginTop: 8 }} padding={isLargeScreen ? 20 : 18}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             <Chip icon="flash-outline" label={`${station.maxKw} kW max`} isLarge={isLargeScreen} colors={colors} />
-            <Chip icon="cash-outline"  label={`${formatCurrency(station.pricePerKwh)}/kWh`} isLarge={isLargeScreen} colors={colors} />
+            <Chip icon="cash-outline"  label={`₹${station.pricePerKwh}/kWh`} isLarge={isLargeScreen} colors={colors} />
             <Chip icon="star"          label={`${station.rating.toFixed(1)} rating`} isLarge={isLargeScreen} colors={colors} />
+            <Chip icon="time-outline"  label="Open 24 Hours" isLarge={isLargeScreen} colors={colors} />
           </View>
-          <View style={{ marginTop: 20, borderTopWidth: 1, borderTopColor: colors.borderSoft, paddingTop: 16 }}>
-            <Text style={{ textTransform: 'uppercase', letterSpacing: 2, color: colors.textFaint, fontSize: scaleFont(isLargeScreen ? 12 : 11) }}>
-              Network
-            </Text>
-            <Text style={{ marginTop: 4, fontWeight: '600', color: colors.accentCyan, fontSize: scaleFont(isLargeScreen ? 17 : 16) }}>
-              {station.network}
-            </Text>
+          <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: colors.borderSoft, paddingTop: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View>
+              <Text style={{ textTransform: 'uppercase', letterSpacing: 2, color: colors.textFaint, fontSize: scaleFont(isLargeScreen ? 12 : 11) }}>
+                Network
+              </Text>
+              <Text style={{ marginTop: 4, fontWeight: '600', color: colors.accentCyan, fontSize: scaleFont(isLargeScreen ? 17 : 16) }}>
+                {station.network}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ textTransform: 'uppercase', letterSpacing: 2, color: colors.textFaint, fontSize: scaleFont(isLargeScreen ? 12 : 11) }}>
+                Price
+              </Text>
+              <Text style={{ marginTop: 4, fontWeight: '800', color: colors.text, fontSize: scaleFont(isLargeScreen ? 17 : 16) }}>
+                ₹{station.pricePerKwh} / kWh
+              </Text>
+            </View>
           </View>
         </GlassCard>
 
@@ -205,6 +267,42 @@ export function StationDetailsScreen() {
           <Text style={{ marginTop: 8, color: colors.textMuted, fontSize: scaleFont(isLargeScreen ? 13 : 12) }}>
             {station.availablePorts} of {station.totalPorts} connectors available
           </Text>
+
+          {/* ── Connector Slot Grid ─────────────────────────────────────────── */}
+          <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {Array.from({ length: station.totalPorts || 8 }).map((_, i) => {
+              const isAvail = i < (station.availablePorts || 2);
+              const slotNum = i + 1;
+              return (
+                <View key={slotNum} style={{
+                  flexBasis: isLargeScreen ? '23%' : '47%',
+                  flexGrow: 1,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: isAvail ? 'rgba(16,185,129,0.35)' : 'rgba(251,191,36,0.35)',
+                  backgroundColor: isAvail
+                    ? isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.06)'
+                    : isDark ? 'rgba(251,191,36,0.08)' : 'rgba(251,191,36,0.06)',
+                  paddingHorizontal: 10, paddingVertical: 8,
+                  flexDirection: 'row', alignItems: 'center', gap: 6,
+                }}>
+                  <Ionicons
+                    name={isAvail ? 'flash' : 'flash-off'}
+                    size={12}
+                    color={isAvail ? colors.accentCyan : '#fbbf24'}
+                  />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: scaleFont(11) }} numberOfLines={1}>
+                      Charger {slotNum}
+                    </Text>
+                    <Text style={{ color: isAvail ? colors.accentCyan : '#fbbf24', fontSize: scaleFont(10), fontWeight: '600', marginTop: 1 }}>
+                      {isAvail ? 'Available' : 'In Use'}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         </GlassCard>
 
         {/* Charger types */}
@@ -300,8 +398,8 @@ export function StationDetailsScreen() {
           {resolvedMinutes > 0 && estimatedCost && (
             <View style={{
               flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-              borderRadius: 12, borderWidth: 1, borderColor: colors.borderSoft,
-              backgroundColor: isDark ? 'rgba(0,217,126,0.06)' : 'rgba(0,106,78,0.06)',
+              borderRadius: 12, borderWidth: 1, borderColor: `${colors.accentCyan}30`,
+              backgroundColor: `${colors.accentCyan}15`,
               paddingHorizontal: 14, paddingVertical: 10,
             }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -348,9 +446,9 @@ export function StationDetailsScreen() {
           })}
         >
           {bookingLoading ? (
-            <ActivityIndicator color="#020617" />
+            <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text style={{ fontWeight: '800', color: '#020617', fontSize: scaleFont(isLargeScreen ? 17 : 16) }}>
+            <Text style={{ fontWeight: '800', color: '#ffffff', fontSize: scaleFont(isLargeScreen ? 17 : 16) }}>
               {station.availablePorts === 0
                 ? 'Station full'
                 : resolvedMinutes
@@ -370,8 +468,8 @@ function Chip({ icon, label, isLarge, colors }) {
     <View style={{
       flexDirection: 'row', alignItems: 'center', gap: 6,
       borderRadius: 999, borderWidth: 1,
-      borderColor: 'rgba(0,217,126,0.22)',
-      backgroundColor: 'rgba(0,217,126,0.1)',
+      borderColor: `${colors.accentCyan}40`,
+      backgroundColor: `${colors.accentCyan}15`,
       paddingHorizontal: 12, paddingVertical: 6,
     }}>
       <Ionicons name={icon} size={isLarge ? 16 : 14} color={colors.accentCyan} />

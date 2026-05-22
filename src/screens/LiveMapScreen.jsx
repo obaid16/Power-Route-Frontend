@@ -508,8 +508,8 @@ export function LiveMapScreen() {
                         onPress={() => setTargetId(s.id)}
                         style={[
                           styles.chip,
-                          { maxWidth: chipMaxWidth, backgroundColor: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.9)', borderColor: colors.borderSoft },
-                          active && { borderColor: colors.accentCyan, backgroundColor: isDark ? 'rgba(0,217,126,0.18)' : 'rgba(0,106,78,0.12)' },
+                          { maxWidth: chipMaxWidth, backgroundColor: isDark ? colors.bgElevated : '#fff', borderColor: colors.borderSoft },
+                          active && { borderColor: colors.accentCyan, backgroundColor: `${colors.accentCyan}15` },
                         ]}
                       >
                         <Text style={[styles.chipTxt, { color: active ? colors.accentCyan : colors.textMuted }]} numberOfLines={1}>
@@ -522,46 +522,93 @@ export function LiveMapScreen() {
 
                 {targetStation ? (
                   <GlassCard padding={isNarrow ? 14 : isLargeScreen ? 20 : 16}>
-                    <View style={styles.etaHeaderRow}>
-                      <View style={{ flex: 1, minWidth: 0 }}>
-                        <Text style={[styles.etaLabel, { fontSize: (isLargeScreen ? 12 : 11) * Math.min(fontScale, 1.08), color: colors.textFaint }]}>Route ETA</Text>
-                        <Text style={[styles.etaBig, { fontSize: (isLargeScreen ? 30 : 26) * Math.min(fontScale, 1.12), color: colors.text }]}>
-                          {etaMinutes} min · {formatDistance(etaKm)}
-                        </Text>
+                    {/* ── Mockup-02 Station Info Row ────────────────────────── */}
+                    <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+                      {/* Station Icon Thumbnail */}
+                      <View style={{
+                        width: 60, height: 60, borderRadius: 12,
+                        backgroundColor: `${colors.accentCyan}15`,
+                        borderWidth: 1.5, borderColor: `${colors.accentCyan}40`,
+                        alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <Ionicons name="flash" size={22} color={colors.accentCyan} />
                       </View>
-                      
+
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        {/* Name + Rating */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                          <Text style={{ fontWeight: '800', color: colors.text, fontSize: (isLargeScreen ? 16 : 14) * Math.min(fontScale, 1.08) }} numberOfLines={1}>
+                            {targetStation.name}
+                          </Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                            <Ionicons name="star" size={12} color="#fbbf24" />
+                            <Text style={{ fontSize: 11 * Math.min(fontScale, 1.08), fontWeight: '700', color: colors.text }}>
+                              {targetStation.rating?.toFixed(1) || '4.5'}
+                            </Text>
+                          </View>
+                        </View>
+                        {/* Address + ETA */}
+                        <Text style={{ color: colors.textMuted, fontSize: 11 * Math.min(fontScale, 1.08), marginTop: 2 }} numberOfLines={1}>
+                          {targetStation.address || 'EV Charging Hub'} · {etaMinutes} min · {formatDistance(etaKm)}
+                        </Text>
+                        {/* Available Badge */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                          <View style={{ backgroundColor: `${colors.accentCyan}15`, borderColor: `${colors.accentCyan}30`, borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                            <Text style={{ color: colors.accentCyan, fontSize: 10 * Math.min(fontScale, 1.08), fontWeight: '800' }}>
+                              Available · {targetStation.availablePorts ?? 2}/{targetStation.totalPorts ?? 8}
+                            </Text>
+                          </View>
+                          <Text style={{ color: colors.textFaint, fontSize: 10 * Math.min(fontScale, 1.08), fontWeight: '600' }}>
+                            DC Fast Charger
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* ── Action Buttons ─────────────────────────────────────── */}
+                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+                      {/* Primary: View Details (solid green) */}
                       <Pressable
                         onPress={() => goToStation(targetStation.id)}
-                        style={[styles.navBtnWide, { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: colors.borderSoft }, isLargeScreen && { paddingHorizontal: 18, paddingVertical: 14 }]}
+                        style={({ pressed }) => ({
+                          flex: 1, backgroundColor: colors.accentCyan,
+                          paddingVertical: 12, borderRadius: 10,
+                          alignItems: 'center', justifyContent: 'center',
+                          opacity: pressed ? 0.85 : 1,
+                        })}
                       >
-                        <Text style={[styles.navBtnTxt, { color: colors.text, fontSize: isLargeScreen ? 13 : 11 }]}>Details</Text>
+                        <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 13 * Math.min(fontScale, 1.08) }}>
+                          View Details
+                        </Text>
                       </Pressable>
-                    </View>
-
-                    {/* Dual Action Map Navigation Keys */}
-                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                      {/* In-App 3D Nav */}
                       <Pressable
                         onPress={startNavigation}
-                        style={[styles.actionBtn, { backgroundColor: colors.accentCyan, flex: 1 }]}
+                        style={({ pressed }) => ({
+                          paddingHorizontal: 14, paddingVertical: 12, borderRadius: 10,
+                          borderWidth: 1, borderColor: colors.borderSoft,
+                          backgroundColor: `${colors.accentCyan}10`,
+                          alignItems: 'center', justifyContent: 'center',
+                          flexDirection: 'row', gap: 4,
+                          opacity: pressed ? 0.85 : 1,
+                        })}
                       >
-                        <Ionicons name="compass-outline" size={16} color="#020617" />
-                        <Text style={styles.actionBtnTxt}>In-App 3D</Text>
+                        <Ionicons name="compass-outline" size={14} color={colors.accentCyan} />
+                        <Text style={{ color: colors.accentCyan, fontWeight: '700', fontSize: 11 * Math.min(fontScale, 1.08) }}>3D</Text>
                       </Pressable>
+                      {/* Google Maps Handoff */}
                       <Pressable
                         onPress={launchSystemMaps}
-                        style={[styles.actionBtn, { backgroundColor: colors.accentMint, flex: 1 }]}
+                        style={({ pressed }) => ({
+                          paddingHorizontal: 14, paddingVertical: 12, borderRadius: 10,
+                          borderWidth: 1, borderColor: colors.borderSoft,
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                          alignItems: 'center', justifyContent: 'center',
+                          opacity: pressed ? 0.85 : 1,
+                        })}
                       >
-                        <Ionicons name="logo-google" size={16} color="#020617" />
-                        <Text style={styles.actionBtnTxt}>Google Maps</Text>
+                        <Ionicons name="logo-google" size={16} color={colors.textMuted} />
                       </Pressable>
-                    </View>
-
-                    <View style={[styles.divider, { borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]} />
-                    <View style={styles.rowFoot}>
-                      <Ionicons name="navigate" size={isLargeScreen ? 18 : 16} color={colors.accentMint} />
-                      <Text style={[styles.footNote, { fontSize: (isLargeScreen ? 13 : 12) * Math.min(fontScale, 1.08), color: colors.textMuted }]} numberOfLines={2}>
-                        Optimized path to {targetStation.name} · {showsUserLocation ? 'Live GPS' : 'Default location'} · weighted ETA
-                      </Text>
                     </View>
                   </GlassCard>
                 ) : (
@@ -602,22 +649,22 @@ const styles = StyleSheet.create({
     width: 16,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#67e8f9',
-    backgroundColor: '#22d3ee',
+    borderColor: '#c4b5fd',
+    backgroundColor: '#8b5cf6',
   },
   stationWrap: { alignItems: 'center' },
   stationWrapActive: { transform: [{ translateY: -2 }] },
   stationBubble: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(0,217,126, 0.55)',
-    backgroundColor: 'rgba(34, 211, 238, 0.95)',
+    borderColor: 'rgba(139,92,246,0.55)',
+    backgroundColor: 'rgba(139,92,246,0.90)',
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
   stationBubbleActive: {
-    borderColor: '#a7f3d0',
-    backgroundColor: '#5eead4',
+    borderColor: '#c4b5fd',
+    backgroundColor: '#7c3aed',
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
@@ -709,9 +756,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#22d3ee',
+    backgroundColor: '#8b5cf6',
   },
-  navBtnTxt: { fontSize: 12, fontWeight: '800', color: '#020617' },
+  navBtnTxt: { fontSize: 12, fontWeight: '800', color: '#ffffff' },
   divider: {
     marginTop: 12,
     paddingTop: 12,
@@ -754,7 +801,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   stepItemActive: {
-    backgroundColor: 'rgba(0,217,126, 0.08)',
+    backgroundColor: 'rgba(139,92,246,0.1)',
     borderRadius: 8,
     paddingHorizontal: 8,
   },
@@ -780,7 +827,7 @@ const styles = StyleSheet.create({
   externalNavBtnTxt: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#020617',
+    color: '#ffffff',
   },
   actionBtn: {
     flexDirection: 'row',
@@ -793,7 +840,7 @@ const styles = StyleSheet.create({
   actionBtnTxt: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#020617',
+    color: '#ffffff',
   },
 });
 
