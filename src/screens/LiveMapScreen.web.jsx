@@ -118,7 +118,8 @@ export function LiveMapScreen() {
   const tabBarH = useTabBarHeight();
   const navigation = useNavigation();
   const { isDark, colors } = useTheme();
-  const { width, height, fontScale, isLargeScreen, horizontalPadding: edge, mapPreviewHeight, chipMaxWidth, contentMaxWidth } = useResponsive();
+  const { width, height, fontScale, isLargeScreen, isTablet, isMobile, horizontalPadding: edge, mapPreviewHeight, chipMaxWidth, contentMaxWidth } = useResponsive();
+  const isDesktop = isLargeScreen || (!isMobile && !isTablet);
 
   const { stations, vehicle, userCoord: contextCoord, loading: dataLoading } = useVoltApi();
   const userCoord = contextCoord || DEFAULT_MAP_CENTER;
