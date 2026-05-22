@@ -76,7 +76,7 @@ export function HomeDashboardScreen() {
               <Pressable onPress={() => navigation.navigate("Map")}>
                 <Text style={styles.navLinkInactive}>Map</Text>
               </Pressable>
-              <Pressable>
+              <Pressable onPress={() => stackNav.navigate("ChargingVan")}>
                 <Text style={styles.navLinkInactive}>Vehicles</Text>
               </Pressable>
               <Pressable onPress={() => stackNav.navigate("WomenSafety")}>

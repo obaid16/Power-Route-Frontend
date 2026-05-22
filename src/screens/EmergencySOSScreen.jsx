@@ -180,7 +180,7 @@ export function EmergencySOSScreen() {
             {[
               { label: 'Home',     active: false, onPress: () => navigation.navigate('HomeDashboard') },
               { label: 'Map',      active: false, onPress: () => navigation.navigate('Map') },
-              { label: 'Vehicles', active: false, onPress: () => {} },
+              { label: 'Vehicles', active: false, onPress: () => navigation.navigate('ChargingVan') },
               { label: 'Safety',   active: false, onPress: () => navigation.navigate('WomenSafety') },
               { label: 'SOS',      active: true,  onPress: () => {} },
             ].map(({ label, active, onPress }) => (
