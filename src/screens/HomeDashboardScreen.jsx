@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   ScrollView, Text, View, Pressable,
-  StyleSheet, ActivityIndicator, TextInput, Image, Alert, Platform
+  StyleSheet, ActivityIndicator, TextInput, Image, Alert, Platform, ImageBackground
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -176,10 +176,15 @@ export function HomeDashboardScreen() {
         </View>
 
         {/* ── Landing Page Hero Block ───────────────────────────────────────── */}
-        <View style={[
-          styles.hero,
-          (isDesktop || isTablet) && { flexDirection: 'row', gap: 40, alignItems: 'center', marginTop: 20 }
-        ]}>
+        <ImageBackground 
+          source={require('../../assets/hero_bg.jpg')}
+          style={[
+            styles.hero,
+            (isDesktop || isTablet) && { flexDirection: 'row', gap: 40, alignItems: 'center', marginTop: 20 },
+            { padding: isDesktop ? 60 : 30, borderRadius: 24, overflow: 'hidden', minHeight: 460 }
+          ]}
+          imageStyle={{ resizeMode: 'cover', borderRadius: 24 }}
+        >
           {/* Left: Text & CTA */}
           <View style={{ flex: 1.1, minWidth: 0, zIndex: 10 }}>
             <Text style={[styles.heroTitle, { color: '#ffffff', fontSize: scaleFont(isLargeScreen ? 60 : 44), lineHeight: scaleFont(isLargeScreen ? 68 : 52) }]}>
@@ -216,15 +221,9 @@ export function HomeDashboardScreen() {
             </View>
           </View>
 
-          {/* Right: Car Image */}
-          <View style={styles.heroImgWrap}>
-            <Image
-              source={require('../../assets/cyber_car.png')}
-              style={styles.heroImg}
-              resizeMode="contain"
-            />
-          </View>
-        </View>
+          {/* Right: Empty space to let background image (car) show through */}
+          <View style={{ flex: 1 }} />
+        </ImageBackground>
 
         {/* ── Feature Cards Row ──────────────────────────────────────────── */}
         <View style={[styles.featureRow, (isDesktop || isTablet) && { flexDirection: 'row', marginTop: 20 }]}>
