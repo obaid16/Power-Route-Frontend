@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -17,7 +17,7 @@ if (typeof document !== 'undefined') {
   }
 }
 
-import { GlassCard } from '../components';
+import { GlassCard, ThemeToggle } from '../components';
 import { DEFAULT_MAP_CENTER } from '../constants/defaults';
 import { formatDistance } from '../utils/format';
 import { useResponsive } from '../hooks/useResponsive';
@@ -226,18 +226,12 @@ export function LiveMapScreen() {
   }, [routeData.coords, targetStation, userCoord]);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View style={[styles.root, { backgroundColor: isDark ? '#0d1117' : colors.bg }]}>
 
       {/* ── Leaflet Map ─────────────────────────────────────────── */}
-      <View style={[
-        styles.mapFrame,
-        {
-          height: height, // Full height behind everything
-          width: width,
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-        },
-      ]}>
+      <View style={{
+        height: height, width: width, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1
+      }}>
         <MapContainer 
           center={mapCenter} 
           zoom={13} 
@@ -293,7 +287,7 @@ export function LiveMapScreen() {
 
           {/* Route Polyline */}
           {routeData.coords.length > 0 && (
-            <Polyline positions={routeData.coords} color={colors.accentCyan} weight={5} opacity={0.8} />
+            <Polyline positions={routeData.coords} color={'#a855f7'} weight={5} opacity={0.8} />
           )}
         </MapContainer>
         
@@ -305,161 +299,287 @@ export function LiveMapScreen() {
         )}
       </View>
 
-      {/* ── Top overlay (Safety Score) ─────────────────────────────────────────── */}
-      <View style={{ position: 'absolute', top: insets.top + 10, left: edge, right: edge, zIndex: 20 }}>
-        {safetyScore && (
-          <GlassCard padding={12} style={{ alignSelf: 'flex-start' }}>
+      {/* ── Desktop UI (Navbar + Left Panel) ─────────────────────────────────────────── */}
+      {(isDesktop || isTablet) ? (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }} pointerEvents="box-none">
+          {/* Navbar */}
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+            borderWidth: 1, borderRadius: 999,
+            paddingHorizontal: 16, paddingVertical: 10,
+            margin: 16,
+            backgroundColor: isDark ? '#060810' : '#ffffff', borderColor: colors.borderSoft,
+            shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5,
+          }}>
+            {/* Brand */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="shield-checkmark" size={18} color={safetyScore.score > 70 ? colors.accentMint : colors.warning} />
-              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>
-                Safety Score: {safetyScore.score}/100
+              <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#8b5cf6' }}>
+                <Ionicons name="flash" size={14} color="#ffffff" />
+              </View>
+              <Text style={{ fontSize: 16, fontWeight: '900', letterSpacing: 0.5, color: colors.text }}>
+                ELECTRA
               </Text>
             </View>
-            <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 4 }}>
-              {safetyScore.factors.join(' · ')}
-            </Text>
-          </GlassCard>
-        )}
-      </View>
-
-      {/* ── bottom overlay ─────────────────────────────────────────────── */}
-      <View style={[styles.bottomStack, { bottom: bottomOverlay, paddingHorizontal: edge }]} pointerEvents="box-none">
-        
-        {/* ── low battery banner ─────────────────────────────────────────── */}
-        {lowBattery && (
-          <View style={[styles.warnBox, { marginBottom: 10 }]}>
-            <Ionicons name="battery-dead" size={20} color={colors.warning} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.warnTitle}>Reserve buffer</Text>
-              <Text style={[styles.warnSub, { fontSize: 12 * Math.min(fontScale, 1.1) }]}>
-                Est. arrival SoC ~{arrivalEst}%
-              </Text>
+            {/* Links */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 32 }}>
+              {[
+                { label: 'Home',     active: false, onPress: () => navigation.navigate('HomeDashboard') },
+                { label: 'Map',      active: true,  onPress: () => {} },
+                { label: 'Vehicles', active: false, onPress: () => {} },
+                { label: 'Safety',   active: false, onPress: () => navigation.navigate('WomenSafety') },
+                { label: 'SOS',      active: false, onPress: () => navigation.navigate('EmergencySOS') },
+              ].map(({ label, active, onPress }) => (
+                <Pressable key={label} onPress={onPress} style={{ alignItems: 'center', justifyContent: 'center', position: 'relative', height: 32 }}>
+                  <Text style={{ fontWeight: '700', fontSize: 13, color: active ? '#a855f7' : colors.textMuted }}>
+                    {label}
+                  </Text>
+                  {active && <View style={{ position: 'absolute', bottom: -4, width: '100%', height: 2, borderRadius: 2, backgroundColor: '#a855f7' }} />}
+                </Pressable>
+              ))}
+            </View>
+            {/* Actions */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <Ionicons name="notifications" size={18} color={colors.textMuted} />
+              <ThemeToggle size="sm" showLabel={false} />
+              <View style={{ width: 32, height: 32, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
+                <Image source={{ uri: 'https://i.pravatar.cc/100?img=47' }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+              </View>
             </View>
           </View>
-        )}
 
-        <View style={{ maxWidth: contentMaxWidth ?? 9999, alignSelf: 'center', width: '100%' }}>
-          {/* Station chips */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipRow}
-            style={{ marginBottom: 10, maxHeight: 44 }}
-          >
-            {stations.map((s) => {
-              const active = s.id === targetStation?.id;
-              return (
-                <Pressable key={s.id} onPress={() => setTargetId(s.id)}
-                  style={[styles.chip, { maxWidth: chipMaxWidth,
-                    backgroundColor: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.9)',
-                    borderColor: active ? colors.accentCyan : colors.borderSoft,
-                    ...(active && { backgroundColor: isDark ? 'rgba(0,217,126,0.18)' : 'rgba(0,106,78,0.12)' }),
-                  }]}
-                >
-                  <Text style={[styles.chipTxt, { color: active ? colors.accentCyan : colors.textMuted }]} numberOfLines={1}>
-                    {s.name.replace(' Station', '').replace(' Superhub', '')}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          {/* Left Panel */}
+          <View style={{
+            position: 'absolute', top: 80, left: 16, bottom: 16, width: 320,
+            backgroundColor: isDark ? '#0b0f19' : '#ffffff', borderRadius: 16, borderWidth: 1, borderColor: colors.borderSoft,
+            padding: 20,
+          }}>
+            {/* Search Box */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1a1f36' : '#f1f5f9', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 20 }}>
+              <Ionicons name="search" size={18} color={colors.textMuted} />
+              <Text style={{ color: colors.textMuted, marginLeft: 10, flex: 1, fontSize: 13 }}>Search location</Text>
+              <Ionicons name="close" size={18} color={colors.textMuted} />
+            </View>
 
-          {/* ETA card */}
-          {targetStation ? (
-            <GlassCard padding={isNarrow ? 12 : 16}>
-              <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-                {/* Station Visual (Mockup Image Parity) */}
-                <View style={{
-                  width: 64, height: 64, borderRadius: 12,
-                  overflow: 'hidden', borderWidth: 1.5, borderColor: `${colors.accentCyan}40`,
-                  backgroundColor: `${colors.accentCyan}15`,
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Ionicons name="flash" size={24} color={colors.accentCyan} />
+            {/* Filter Section */}
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: 16 }}>Filter</Text>
+            <View style={{ gap: 12, marginBottom: 24 }}>
+              {[
+                { label: 'Charging Stations', active: true },
+                { label: 'Available Now', active: false },
+                { label: 'Fast Charging', active: false },
+                { label: 'Electra Stations', active: false },
+              ].map(f => (
+                <View key={f.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{
+                    width: 20, height: 20, borderRadius: 6, borderWidth: 1,
+                    borderColor: f.active ? '#a855f7' : colors.textMuted,
+                    backgroundColor: f.active ? '#a855f7' : 'transparent',
+                    alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {f.active && <Ionicons name="checkmark" size={14} color="#fff" />}
+                  </View>
+                  <Text style={{ color: f.active ? colors.text : colors.textMuted, fontSize: 13, fontWeight: f.active ? '600' : '500' }}>{f.label}</Text>
                 </View>
+              ))}
+            </View>
 
-                {/* Details */}
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontWeight: '800', color: colors.text, fontSize: scaleFont(16) }} numberOfLines={1}>
-                      {targetStation.name}
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                      <Ionicons name="star" size={13} color="#fbbf24" />
-                      <Text style={{ fontSize: scaleFont(12), fontWeight: '700', color: colors.text }}>
-                        {targetStation.rating?.toFixed(1) || '4.5'}
+            {/* Divider */}
+            <View style={{ height: 1, backgroundColor: colors.borderSoft, marginBottom: 16 }} />
+
+            {/* Station List */}
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {stations.map(s => {
+                const isActive = targetId === s.id;
+                return (
+                  <Pressable key={s.id} onPress={() => setTargetId(s.id)} style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20,
+                    opacity: isActive ? 1 : 0.6
+                  }}>
+                    <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(168,85,247,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(168,85,247,0.3)' }}>
+                      <Ionicons name="location" size={16} color="#a855f7" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>{s.name}</Text>
+                      <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 4 }}>
+                        {s.availablePorts}/{s.totalPorts || 6} Available
                       </Text>
                     </View>
-                  </View>
-
-                  <Text style={{ color: colors.textMuted, fontSize: scaleFont(12), marginTop: 2 }} numberOfLines={1}>
-                    {targetStation.address || 'MG Road, Bangalore'} · {formatDistance(routeData.etaKm || 2.4)}
-                  </Text>
-
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                    <View style={{
-                      backgroundColor: `${colors.accentCyan}15`,
-                      borderColor: `${colors.accentCyan}30`,
-                      borderWidth: 1,
-                      borderRadius: 6,
-                      paddingHorizontal: 8,
-                      paddingVertical: 2,
-                    }}>
-                      <Text style={{ color: colors.accentCyan, fontSize: scaleFont(11), fontWeight: '800' }}>
-                        Available · {targetStation.availablePorts ?? 2}/{targetStation.totalPorts ?? 8}
-                      </Text>
-                    </View>
-                    <Text style={{ color: colors.textFaint, fontSize: scaleFont(11), fontWeight: '600' }}>
-                      DC Fast Charger
+                    <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: '600' }}>
+                      {formatDistance(s.distanceKm || 1.2)}
                     </Text>
-                  </View>
-                </View>
-              </View>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
 
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-                <Pressable onPress={() => goToStation(targetStation.id)}
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    backgroundColor: colors.accentCyan,
-                    paddingVertical: 12,
-                    borderRadius: 10,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: pressed ? 0.85 : 1,
-                  })}
-                >
-                  <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: scaleFont(13) }}>
-                    View Details
-                  </Text>
-                </Pressable>
-                
-                <Pressable onPress={() => {
-                  const url = `https://www.google.com/maps/dir/?api=1&destination=${targetStation.latitude},${targetStation.longitude}`;
-                  window.open(url, '_blank');
-                }}
-                  style={({ pressed }) => ({
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: colors.borderSoft,
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: pressed ? 0.85 : 1,
-                  })}
-                >
-                  <Ionicons name="navigate-outline" size={16} color={colors.text} />
-                </Pressable>
-              </View>
-            </GlassCard>
-          ) : (
-            <GlassCard padding={isLargeScreen ? 20 : 16}>
-              <Text style={[styles.foot, { fontSize: isLargeScreen ? 14 : 12, color: colors.textMuted }]}>
-                {dataLoading ? 'Loading stations…' : 'No stations nearby. Make sure the backend is running.'}
-              </Text>
-            </GlassCard>
-          )}
+          {/* GPS Button */}
+          <View style={{ position: 'absolute', bottom: 32, right: 32 }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#a855f7', alignItems: 'center', justifyContent: 'center', shadowColor: '#a855f7', shadowOpacity: 0.5, shadowRadius: 10, elevation: 5 }}>
+              <Ionicons name="navigate" size={24} color="#fff" />
+            </View>
+          </View>
         </View>
-      </View>
+      ) : (
+        /* Mobile UI */
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }} pointerEvents="box-none">
+          {/* Top Overlay */}
+          <View style={{ position: 'absolute', top: insets.top + 10, left: edge, right: edge, zIndex: 20 }}>
+            {safetyScore && (
+              <GlassCard padding={12} style={{ alignSelf: 'flex-start' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons name="shield-checkmark" size={18} color={safetyScore.score > 70 ? colors.accentMint : colors.warning} />
+                  <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>
+                    Safety Score: {safetyScore.score}/100
+                  </Text>
+                </View>
+                <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 4 }}>
+                  {safetyScore.factors.join(' · ')}
+                </Text>
+              </GlassCard>
+            )}
+          </View>
+
+          {/* bottom overlay */}
+          <View style={[styles.bottomStack, { bottom: bottomOverlay, paddingHorizontal: edge }]} pointerEvents="box-none">
+            
+            {/* low battery banner */}
+            {lowBattery && (
+              <View style={[styles.warnBox, { marginBottom: 10 }]}>
+                <Ionicons name="battery-dead" size={20} color={colors.warning} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.warnTitle}>Reserve buffer</Text>
+                  <Text style={[styles.warnSub, { fontSize: 12 * Math.min(fontScale, 1.1) }]}>
+                    Est. arrival SoC ~{arrivalEst}%
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            <View style={{ maxWidth: contentMaxWidth ?? 9999, alignSelf: 'center', width: '100%' }}>
+              {/* Station chips */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipRow}
+                style={{ marginBottom: 10, maxHeight: 44 }}
+              >
+                {stations.map((s) => {
+                  const active = s.id === targetStation?.id;
+                  return (
+                    <Pressable key={s.id} onPress={() => setTargetId(s.id)}
+                      style={[styles.chip, { maxWidth: chipMaxWidth,
+                        backgroundColor: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.9)',
+                        borderColor: active ? colors.accentCyan : colors.borderSoft,
+                        ...(active && { backgroundColor: isDark ? 'rgba(0,217,126,0.18)' : 'rgba(0,106,78,0.12)' }),
+                      }]}
+                    >
+                      <Text style={[styles.chipTxt, { color: active ? colors.accentCyan : colors.textMuted }]} numberOfLines={1}>
+                        {s.name.replace(' Station', '').replace(' Superhub', '')}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+
+              {/* ETA card */}
+              {targetStation ? (
+                <GlassCard padding={isNarrow ? 12 : 16}>
+                  <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+                    {/* Station Visual (Mockup Image Parity) */}
+                    <View style={{
+                      width: 64, height: 64, borderRadius: 12,
+                      overflow: 'hidden', borderWidth: 1.5, borderColor: `${colors.accentCyan}40`,
+                      backgroundColor: `${colors.accentCyan}15`,
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Ionicons name="flash" size={24} color={colors.accentCyan} />
+                    </View>
+
+                    {/* Details */}
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <Text style={{ fontWeight: '800', color: colors.text, fontSize: scaleFont(16) }} numberOfLines={1}>
+                          {targetStation.name}
+                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                          <Ionicons name="star" size={13} color="#fbbf24" />
+                          <Text style={{ fontSize: scaleFont(12), fontWeight: '700', color: colors.text }}>
+                            {targetStation.rating?.toFixed(1) || '4.5'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={{ color: colors.textMuted, fontSize: scaleFont(12), marginTop: 2 }} numberOfLines={1}>
+                        {targetStation.address || 'MG Road, Bangalore'} · {formatDistance(routeData.etaKm || 2.4)}
+                      </Text>
+
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                        <View style={{
+                          backgroundColor: `${colors.accentCyan}15`,
+                          borderColor: `${colors.accentCyan}30`,
+                          borderWidth: 1,
+                          borderRadius: 6,
+                          paddingHorizontal: 8,
+                          paddingVertical: 2,
+                        }}>
+                          <Text style={{ color: colors.accentCyan, fontSize: scaleFont(11), fontWeight: '800' }}>
+                            Available · {targetStation.availablePorts ?? 2}/{targetStation.totalPorts ?? 8}
+                          </Text>
+                        </View>
+                        <Text style={{ color: colors.textFaint, fontSize: scaleFont(11), fontWeight: '600' }}>
+                          DC Fast Charger
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+                    <Pressable onPress={() => goToStation(targetStation.id)}
+                      style={({ pressed }) => ({
+                        flex: 1,
+                        backgroundColor: colors.accentCyan,
+                        paddingVertical: 12,
+                        borderRadius: 10,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: pressed ? 0.85 : 1,
+                      })}
+                    >
+                      <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: scaleFont(13) }}>
+                        View Details
+                      </Text>
+                    </Pressable>
+                    
+                    <Pressable onPress={() => {
+                      const url = `https://www.google.com/maps/dir/?api=1&destination=${targetStation.latitude},${targetStation.longitude}`;
+                      window.open(url, '_blank');
+                    }}
+                      style={({ pressed }) => ({
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: colors.borderSoft,
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: pressed ? 0.85 : 1,
+                      })}
+                    >
+                      <Ionicons name="navigate-outline" size={16} color={colors.text} />
+                    </Pressable>
+                  </View>
+                </GlassCard>
+              ) : (
+                <GlassCard padding={isLargeScreen ? 20 : 16}>
+                  <Text style={[styles.foot, { fontSize: isLargeScreen ? 14 : 12, color: colors.textMuted }]}>
+                    {dataLoading ? 'Loading stations…' : 'No stations nearby. Make sure the backend is running.'}
+                  </Text>
+                </GlassCard>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
