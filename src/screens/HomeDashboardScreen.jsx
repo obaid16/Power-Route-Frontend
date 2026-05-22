@@ -1,331 +1,350 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
-  ScrollView, Text, View, Pressable,
-  StyleSheet, ActivityIndicator, TextInput, Image, Alert, Platform, ImageBackground
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ScreenBackground, ThemeToggle } from '../components';
-import { AmbientOrbs, DashboardBatteryHero, DashboardStationCard, ChargingSessionCard } from '../components/home';
-import { useMainStackNav } from '../hooks/useMainStackNav';
-import { useResponsive } from '../hooks/useResponsive';
-import { useAuth } from '../context/AuthContext';
-import { useVoltApi } from '../hooks/useVoltApi';
-import { useTheme } from '../context/ThemeContext';
+  ScrollView,
+  Text,
+  View,
+  Pressable,
+  StyleSheet,
+  Image,
+  Platform,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { ScreenBackground } from "../components";
+import { useMainStackNav } from "../hooks/useMainStackNav";
+import { useResponsive } from "../hooks/useResponsive";
+import { useAuth } from "../context/AuthContext";
+import { useVoltApi } from "../hooks/useVoltApi";
+import { useTheme } from "../context/ThemeContext";
 import Animated, {
-  useSharedValue, useAnimatedStyle,
-  withRepeat, withSequence, withTiming,
-} from 'react-native-reanimated';
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Screen
-// ─────────────────────────────────────────────────────────────────────────────
 export function HomeDashboardScreen() {
-  const navigation  = useNavigation();
-  const stackNav    = useMainStackNav();
-  const { user, logout } = useAuth();
+  const navigation = useNavigation();
+  const stackNav = useMainStackNav();
+  const { user } = useAuth();
   const { colors: C, isDark } = useTheme();
-  const {
-    contentContainerStyle, cardSnapInterval, quickColBasis,
-    isDesktop, isTablet, isLargeScreen, scaleFont,
-  } = useResponsive();
-  const { loading, vehicle, stations, source, apiBaseUrl, lastError, locationNote, refresh } = useVoltApi();
+  const { contentContainerStyle, isTablet, isLargeScreen, isMobile } =
+    useResponsive();
 
-  // ── SOS pulse animation ──────────────────────────────────────────────────
+  const { loading, vehicle, stations } = useVoltApi();
+
   const sosPulse = useSharedValue(1);
   useEffect(() => {
     sosPulse.value = withRepeat(
-      withSequence(withTiming(1.1, { duration: 800 }), withTiming(1, { duration: 800 })),
-      -1, true
+      withSequence(
+        withTiming(1.1, { duration: 800 }),
+        withTiming(1, { duration: 800 }),
+      ),
+      -1,
+      true,
     );
   }, [sosPulse]);
-  const sosAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: sosPulse.value }],
-  }));
-
-  const getGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
 
   return (
-    <ScreenBackground>
+    <View style={{ flex: 1, backgroundColor: "#09090b" }}>
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={[styles.scroll, contentContainerStyle]}
+        contentContainerStyle={[
+          styles.scroll,
+          contentContainerStyle,
+          { paddingTop: 24, paddingHorizontal: 24, paddingBottom: 100 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-
-        {/* ── Desktop / Tablet Nav Bar (ELECTRA) ───────────────────────── */}
-        {(isDesktop || isTablet) && (
-          <View style={[styles.navBarPill, { backgroundColor: isDark ? '#060810' : '#ffffff', borderColor: C.borderSoft }]}>
-            {/* Brand */}
-            <View style={styles.navBrand}>
-              <View style={[styles.navLogoElectra]}>
-                <Ionicons name="flash" size={14} color="#ffffff" />
-              </View>
-              <Text style={[styles.navBrandText, { color: C.text }]}>
-                ELECTRA
-              </Text>
+        {/* ── Nav Bar ───────────────────────── */}
+        <View style={styles.navBar}>
+          <View style={styles.navBrand}>
+            <View style={styles.navLogoElectra}>
+              <Ionicons name="flash" size={14} color="#ffffff" />
             </View>
+            <Text style={styles.navBrandText}>ELECTRA</Text>
+          </View>
 
-
-            {/* Links */}
+          {!(isMobile && !isTablet) && (
             <View style={styles.navLinks}>
-              {[
-                { label: 'Home',     active: true,  onPress: () => {} },
-                { label: 'Map',      active: false, onPress: () => navigation.navigate('Map') },
-                { label: 'Vehicles', active: false, onPress: () => {} },
-                { label: 'Safety',   active: false, onPress: () => stackNav.navigate('WomenSafety') },
-              ].map(({ label, active, onPress }) => (
-                <Pressable key={label} onPress={onPress} style={styles.navLinkContainer}>
-                  <Text style={[styles.navLink, { color: active ? C.accentCyan : C.textMuted }]}>
-                    {label}
-                  </Text>
-                  {active && (
-                    <View style={[styles.navLinkActiveBar, { backgroundColor: C.accentCyan }]} />
-                  )}
-                </Pressable>
-              ))}
-            </View>
-
-            {/* User Row / Actions */}
-            <View style={styles.navActions}>
-              <Pressable onPress={() => navigation.navigate('EmergencySOS')}>
-                <Text style={{ color: C.textMuted, fontSize: scaleFont(13), fontWeight: '600' }}>SOS</Text>
+              <Pressable style={styles.navLinkContainer}>
+                <Text style={styles.navLinkActive}>Home</Text>
+                <View style={styles.navLinkActiveBar} />
               </Pressable>
-              
-              <Pressable onPress={() => stackNav.navigate('Notifications')}>
-                <Ionicons name="notifications" size={18} color={C.textMuted} />
+              <Pressable onPress={() => navigation.navigate("Map")}>
+                <Text style={styles.navLinkInactive}>Map</Text>
               </Pressable>
-              
-              <ThemeToggle size="sm" showLabel={false} />
-              
-              <View style={styles.avatarWrap}>
-                <Image 
-                  source={{ uri: 'https://i.pravatar.cc/100?img=47' }} 
-                  style={styles.avatarImg} 
-                />
-              </View>
+              <Pressable>
+                <Text style={styles.navLinkInactive}>Vehicles</Text>
+              </Pressable>
+              <Pressable onPress={() => stackNav.navigate("WomenSafety")}>
+                <Text style={styles.navLinkInactive}>Safety</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate("EmergencySOS")}>
+                <Text style={styles.navLinkInactive}>SOS</Text>
+              </Pressable>
             </View>
-          </View>
-        )}
+          )}
 
-        {/* ── User Row ─────────────────────────────────────────────────── */}
-        <View style={[styles.userRow, { marginBottom: 24 }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.greeting, { color: C.accentCyan }]}>
-              {getGreeting()}, {user?.name || 'EV Driver'}
-            </Text>
-            <Text style={[styles.vehicleName, { color: C.text, fontSize: scaleFont(20) }]} numberOfLines={1}>
-              {vehicle.evVehicleModel || 'Your EV'}
-            </Text>
-            <DataSourcePill
-              loading={loading} source={source} apiBaseUrl={apiBaseUrl}
-              lastError={lastError} locationNote={locationNote} onRetry={refresh}
-            />
-          </View>
-
-          <View style={styles.headerActions}>
-            <Pressable
-              onPress={() => {
-                if (Platform.OS === 'web') {
-                  if (window.confirm("Are you sure you want to logout?")) {
-                    logout().then(() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }));
-                  }
-                } else {
-                  Alert.alert(
-                    "Logout",
-                    "Are you sure you want to logout?",
-                    [
-                      { text: "Cancel", style: "cancel" },
-                      { text: "Logout", style: "destructive", onPress: async () => {
-                        await logout();
-                        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-                      }}
-                    ]
-                  );
-                }
-              }}
-              style={({ pressed }) => [styles.iconBtn, { borderColor: C.border, opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Ionicons name="log-out-outline" size={isLargeScreen ? 22 : 20} color={C.danger} />
+          <View style={styles.navActions}>
+            <Pressable onPress={() => stackNav.navigate("Notifications")}>
+              <Ionicons name="notifications" size={18} color="#a1a1aa" />
             </Pressable>
-
-            <Pressable
-              onPress={() => stackNav.navigate('Notifications')}
-              style={({ pressed }) => [styles.iconBtn, { borderColor: C.border, opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Ionicons name="notifications-outline" size={isLargeScreen ? 22 : 20} color={C.accentCyan} />
+            <Pressable>
+              <Ionicons name="moon" size={18} color="#a1a1aa" />
             </Pressable>
-
-            <ThemeToggle size="sm" showLabel={false} />
-
-            <Animated.View style={sosAnimStyle}>
-              <Pressable
-                onPress={() => navigation.navigate('EmergencySOS')}
-                style={({ pressed }) => [styles.sosBtn, pressed && { opacity: 0.8 }]}
-              >
-                <Ionicons name="warning" size={isLargeScreen ? 22 : 20} color="#ef4444" />
-              </Pressable>
-            </Animated.View>
-          </View>
-        </View>
-
-        {/* ── Landing Page Hero Block ───────────────────────────────────────── */}
-        <ImageBackground 
-          source={require('../../assets/hero_bg.jpg')}
-          style={[
-            styles.hero,
-            (isDesktop || isTablet) && { flexDirection: 'row', gap: 40, alignItems: 'center', marginTop: 20 },
-            { padding: isDesktop ? 60 : 30, borderRadius: 24, overflow: 'hidden', minHeight: 460 }
-          ]}
-          imageStyle={{ resizeMode: 'cover', borderRadius: 24 }}
-        >
-          {/* Left: Text & CTA */}
-          <View style={{ flex: 1.1, minWidth: 0, zIndex: 10 }}>
-            <Text style={[styles.heroTitle, { color: '#ffffff', fontSize: scaleFont(isLargeScreen ? 60 : 44), lineHeight: scaleFont(isLargeScreen ? 68 : 52) }]}>
-              Smart. Safe.{'\n'}
-              <Text style={{ color: C.accentPurple }}>
-                Sustainable.
-              </Text>
-            </Text>
-
-            <Text style={[styles.heroSub, { color: C.textMuted, fontSize: scaleFont(isLargeScreen ? 18 : 15), marginTop: 24, maxWidth: 380 }]}>
-              Empowering every journey{'\n'}with Electric Mobility.
-            </Text>
-
-            {/* CTA Buttons */}
-            <View style={styles.heroCtas}>
-              <Pressable
-                onPress={() => navigation.navigate('Map')}
-                style={({ pressed }) => [
-                  styles.ctaPrimary, 
-                  { backgroundColor: C.accentPurple, opacity: pressed ? 0.85 : 1 }
-                ]}
-              >
-                <Text style={styles.ctaPrimaryText}>Get Started</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {}}
-                style={({ pressed }) => [
-                  styles.ctaSecondary, 
-                  { borderColor: 'rgba(255,255,255,0.2)', opacity: pressed ? 0.85 : 1 }
-                ]}
-              >
-                <Text style={[styles.ctaSecondaryText, { color: '#ffffff' }]}>Learn More</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Right: Empty space to let background image (car) show through */}
-          <View style={{ flex: 1 }} />
-        </ImageBackground>
-
-        {/* ── Feature Cards Row ──────────────────────────────────────────── */}
-        <View style={[styles.featureRow, (isDesktop || isTablet) && { flexDirection: 'row', marginTop: 20 }]}>
-          {[
-            { icon: 'leaf', title: 'Eco Friendly', sub: 'Zero emission\nfor a better planet', color: '#10b981' },
-            { icon: 'phone-portrait-outline', title: 'Smart Charging', sub: 'Find, book and\ncharge anywhere', color: '#f59e0b' },
-            { icon: 'person', title: 'Women Safety', sub: 'Your safety,\nour priority', color: '#a855f7' },
-            { icon: 'location', title: 'Real-time Updates', sub: 'Live tracking and\nvehicle insights', color: '#6366f1' },
-          ].map(({ icon, title, sub, color }) => (
-            <View
-              key={title}
-              style={[styles.featureCardMock, { backgroundColor: isDark ? '#0b0f19' : '#ffffff', borderColor: C.borderSoft }]}
-            >
-              <View style={styles.featureIconWrap}>
-                <Ionicons name={icon} size={24} color={color} />
-              </View>
-              <Text style={[styles.featureTitleMock, { color: C.text, fontSize: scaleFont(15) }]}>{title}</Text>
-              <Text style={[styles.featureSubMock, { color: C.textMuted, fontSize: scaleFont(12) }]}>{sub}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* ── Vehicle Status ───────────────────────────────────────────── */}
-        <SectionLabel title="Vehicle Status" sub="Battery & AI recommendations" C={C} scaleFont={scaleFont} />
-        <DashboardBatteryHero
-          batteryPct={vehicle.batteryPct > 0 ? vehicle.batteryPct : 78}
-          rangeKm={vehicle.rangeKm > 0 ? vehicle.rangeKm : 342}
-          ecoScore={vehicle.ecoScore > 0 ? vehicle.ecoScore : 85}
-        />
-
-        {vehicle.isCharging && (
-          <ChargingSessionCard chargeKw={vehicle.chargeKw} timeToFullMin={vehicle.timeToFullMin} />
-        )}
-
-        {/* ── Nearby Stations ──────────────────────────────────────────── */}
-        <SectionLabel title="Nearby Superhubs" sub="Charging stations in your area" C={C} scaleFont={scaleFont} />
-        {!loading && stations.length === 0 && (
-          <Text style={[styles.emptyHint, { color: C.textFaint, fontSize: scaleFont(13) }]}>
-            No stations in range. Run: npm run seed
-          </Text>
-        )}
-        {isDesktop || isTablet ? (
-          <View style={styles.stationGrid}>
-            {stations.map((s) => (
-              <View key={s.id} style={styles.stationGridItem}>
-                <DashboardStationCard
-                  station={s}
-                  style={{ width: '100%', marginRight: 0 }}
-                  onPress={() => stackNav.navigate('StationDetails', { stationId: s.id, station: s })}
-                />
-              </View>
-            ))}
-          </View>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            decelerationRate="fast"
-            snapToInterval={cardSnapInterval}
-            snapToAlignment="start"
-            contentContainerStyle={{ paddingRight: 8, paddingVertical: 4 }}
-          >
-            {stations.map((s) => (
-              <DashboardStationCard
-                key={s.id}
-                station={s}
-                onPress={() => stackNav.navigate('StationDetails', { stationId: s.id, station: s })}
+            <View style={styles.avatarWrap}>
+              <Image
+                source={{ uri: "https://i.pravatar.cc/100?img=47" }}
+                style={styles.avatarImg}
               />
-            ))}
-          </ScrollView>
-        )}
-
-        {/* ── Quick Actions ─────────────────────────────────────────────── */}
-        <SectionLabel title="Quick Actions" sub="One tap · zero friction" C={C} scaleFont={scaleFont} />
-        <View style={styles.quickGrid}>
-          {[
-            { icon: 'map-outline',              label: 'Live Map',      sub: 'Route + ETA',        onPress: () => navigation.navigate('Map') },
-            { icon: 'sparkles-outline',         label: 'AI Assist',     sub: 'Smart suggest',      onPress: () => stackNav.navigate('AIRecommend') },
-            { icon: 'stats-chart-outline',      label: 'Insights',      sub: 'Energy + cost',      onPress: () => navigation.navigate('Analytics') },
-            { icon: 'warning-outline',          label: 'SOS',           sub: 'Emergency',          onPress: () => navigation.navigate('EmergencySOS'), danger: true },
-            { icon: 'business-outline',         label: 'Services',      sub: 'Hotels · hospitals', onPress: () => stackNav.navigate('NearbyServices') },
-            { icon: 'notifications-outline',    label: 'Alerts',        sub: 'Smart notifications',onPress: () => stackNav.navigate('Notifications') },
-            { icon: 'car-outline',              label: 'Charging Van',  sub: 'Mobile charger',     onPress: () => stackNav.navigate('ChargingVan') },
-            { icon: 'shield-checkmark-outline', label: 'Women Safety',  sub: 'Safe mode',          onPress: () => stackNav.navigate('WomenSafety') },
-          ].map(({ icon, label, sub, onPress, danger }) => (
-            <QuickCard
-              key={label}
-              icon={icon}
-              label={label}
-              sub={sub}
-              onPress={onPress}
-              danger={!!danger}
-              colBasis={quickColBasis}
-              C={C}
-              isDark={isDark}
-              scaleFont={scaleFont}
-            />
-          ))}
+            </View>
+          </View>
         </View>
 
+        {/* ── Main Grid Layout ───────────────────────── */}
+        <View style={styles.grid}>
+          {/* Card 1: My Vehicle */}
+          <View
+            style={[
+              styles.card,
+              styles.gridItem,
+              { flexBasis: isLargeScreen ? "32%" : isTablet ? "48%" : "100%" },
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>My Vehicle</Text>
+              <Ionicons name="chevron-down" size={16} color="#a1a1aa" />
+            </View>
+            <Text style={styles.vehicleName}>
+              {vehicle?.evVehicleModel || "MG 4 Luxury"}
+            </Text>
+
+            <View style={styles.carImgWrap}>
+              <Image
+                source={require("../../assets/cyber_car.png")}
+                style={styles.carImg}
+              />
+            </View>
+
+            <View style={styles.vehicleFooter}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.footerLabel}>Charging</Text>
+                <View style={styles.chargingTrack}>
+                  <View
+                    style={[
+                      styles.chargingFill,
+                      {
+                        width: `${vehicle?.batteryPct > 0 ? vehicle.batteryPct : 60}%`,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+              <View style={{ alignItems: "flex-end", marginLeft: 16 }}>
+                <Text style={styles.footerLabel}>Range</Text>
+                <Text style={styles.footerValue}>
+                  {vehicle?.rangeKm > 0 ? vehicle.rangeKm : "215.6"} km
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Card 2: Battery Status */}
+          <View
+            style={[
+              styles.card,
+              styles.gridItem,
+              { flexBasis: isLargeScreen ? "32%" : isTablet ? "48%" : "100%" },
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Battery Status</Text>
+              <Ionicons name="ellipsis-horizontal" size={16} color="#a1a1aa" />
+            </View>
+            <View style={styles.batteryCenter}>
+              {/* circular progress mock */}
+              <View style={styles.batteryCircleTrack}>
+                <View style={styles.batteryCircleFill} />
+                <View style={styles.batteryCircleInner}>
+                  <Text style={styles.batteryPct}>
+                    {vehicle?.batteryPct > 0 ? vehicle.batteryPct : 60}%
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.batteryStatusTxt}>⚡ Charging</Text>
+            </View>
+            <View style={{ alignItems: "flex-end", marginTop: "auto" }}>
+              <Text style={styles.footerLabel}>Range</Text>
+              <Text style={styles.footerValue}>
+                {vehicle?.rangeKm > 0 ? vehicle.rangeKm : "215.6"} km
+              </Text>
+            </View>
+          </View>
+
+          {/* Card 3: Nearby Stations */}
+          <View
+            style={[
+              styles.card,
+              styles.gridItem,
+              { flexBasis: isLargeScreen ? "32%" : isTablet ? "48%" : "100%" },
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Nearby Stations</Text>
+              <Ionicons name="chevron-down" size={16} color="#a1a1aa" />
+            </View>
+            <View style={styles.mapArea}>
+              {/* Abstract map elements */}
+              <View
+                style={[
+                  styles.mapLine,
+                  { transform: [{ rotate: "15deg" }], top: 40, left: -20 },
+                ]}
+              />
+              <View
+                style={[
+                  styles.mapLine,
+                  { transform: [{ rotate: "-30deg" }], top: 80, left: 20 },
+                ]}
+              />
+              <View style={[styles.mapPin, { top: 30, left: "30%" }]}>
+                <Ionicons name="location" size={12} color="#ffffff" />
+              </View>
+              <View style={[styles.mapPinLg, { top: 20, right: "20%" }]}>
+                <View style={styles.mapPinLgInner} />
+              </View>
+
+              <View style={styles.stationOverlay}>
+                <Text style={styles.stationName}>Electra Station</Text>
+                <View style={styles.stationRow}>
+                  <Text style={styles.stationLabel}>Range</Text>
+                  <Text style={styles.stationValue}>0.8 km</Text>
+                </View>
+                <View style={styles.stationRow}>
+                  <Text style={styles.stationLabel}>Available</Text>
+                  <Text style={styles.stationValue}>4/6</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Card 4: Recent Trips */}
+          <View
+            style={[
+              styles.card,
+              styles.gridItem,
+              { flexBasis: isLargeScreen ? "32%" : isTablet ? "48%" : "100%" },
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Recent Trips</Text>
+            </View>
+            <View style={styles.tripList}>
+              <TripItem
+                icon="location"
+                title="Home"
+                dist="12.3 km"
+                time="Today, 08:30 AM"
+                color="#9333ea"
+              />
+              <TripItem
+                icon="business"
+                title="Office"
+                dist="24.6 km"
+                time="Yesterday, 06:20 PM"
+                color="#c084fc"
+              />
+              <TripItem
+                icon="cart"
+                title="Mall"
+                dist="18.7 km"
+                time="May 10, 05:40 PM"
+                color="#d8b4fe"
+              />
+            </View>
+            <Pressable style={styles.viewAllBtn}>
+              <Text style={styles.viewAllTxt}>View All</Text>
+            </Pressable>
+          </View>
+
+          {/* Card 5: Quick Actions */}
+          <View
+            style={[
+              styles.card,
+              styles.gridItem,
+              { flexBasis: isLargeScreen ? "32%" : isTablet ? "48%" : "100%" },
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Quick Actions</Text>
+            </View>
+            <View style={styles.actionList}>
+              <ActionBtn
+                icon="search-outline"
+                label="Find Station"
+                onPress={() => navigation.navigate("Map")}
+              />
+              <ActionBtn icon="wallet-outline" label="Charge History" />
+              <ActionBtn icon="car-outline" label="Vehicle Status" />
+              <ActionBtn icon="navigate-outline" label="Navigation" />
+            </View>
+          </View>
+
+          {/* Card 6: Cost Overview */}
+          <View
+            style={[
+              styles.card,
+              styles.gridItem,
+              { flexBasis: isLargeScreen ? "32%" : isTablet ? "48%" : "100%" },
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Cost Overview</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>This Month</Text>
+              </View>
+            </View>
+            <View style={{ alignItems: "flex-end", marginBottom: 12 }}>
+              <Text style={styles.costTotal}>₹1,245</Text>
+              <Text style={styles.costLabel}>Total Spend</Text>
+            </View>
+
+            <View style={styles.chartWrap}>
+              <View style={styles.chartYAxis}>
+                <Text style={styles.chartAxisLabel}>2K</Text>
+                <Text style={styles.chartAxisLabel}>1.5K</Text>
+                <Text style={styles.chartAxisLabel}>1K</Text>
+                <Text style={styles.chartAxisLabel}>500</Text>
+              </View>
+              <View style={styles.chartBars}>
+                {/* Simulated Bar Chart */}
+                {[30, 70, 20, 90, 40, 80, 50, 100, 30].map((h, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.bar,
+                      {
+                        height: `${h}%`,
+                        backgroundColor: i % 2 === 0 ? "#9333ea" : "#c084fc",
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+            <View style={styles.chartXAxis}>
+              <Text style={styles.chartAxisLabel}>May 1</Text>
+              <Text style={styles.chartAxisLabel}>May 10</Text>
+              <Text style={styles.chartAxisLabel}>May 20</Text>
+              <Text style={styles.chartAxisLabel}>May 30</Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
-    </ScreenBackground>
+    </View>
   );
 }
 
@@ -333,80 +352,38 @@ export function HomeDashboardScreen() {
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
-function SectionLabel({ title, sub, C, scaleFont }) {
+function TripItem({ icon, title, dist, time, color }) {
   return (
-    <View style={styles.sectionLabel}>
-      <Text style={[styles.sectionTitle, { color: C.text, fontSize: scaleFont(18) }]}>{title}</Text>
-      <Text style={[styles.sectionSub, { color: C.textMuted, fontSize: scaleFont(12) }]}>{sub}</Text>
+    <View style={styles.tripItem}>
+      <View
+        style={[
+          styles.tripIconBox,
+          { backgroundColor: "rgba(168, 85, 247, 0.1)" },
+        ]}
+      >
+        <Ionicons name={icon} size={18} color={color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.tripTitle}>{title}</Text>
+        <Text style={styles.tripSub}>{dist}</Text>
+      </View>
+      <View style={{ alignItems: "flex-end" }}>
+        <Text style={styles.tripTime}>{time}</Text>
+        <Text style={styles.tripDist}>{dist}</Text>
+      </View>
     </View>
   );
 }
 
-function QuickCard({ icon, label, sub, onPress, danger, colBasis, C, isDark, scaleFont }) {
-  const iconColor = danger ? '#ef4444' : C.accentCyan;
-  const iconBg    = danger ? 'rgba(239,68,68,0.1)' : `${C.accentCyan}15`;
-  const borderCol = danger ? 'rgba(239,68,68,0.18)' : C.borderSoft;
-
+function ActionBtn({ icon, label, onPress }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.quickCard,
-        {
-          flexBasis: colBasis,
-          borderColor: borderCol,
-          backgroundColor: isDark ? C.bgElevated : '#fff',
-          opacity: pressed ? 0.82 : 1,
-        },
-      ]}
+      style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.8 }]}
     >
-      <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
-        <Ionicons name={icon} size={20} color={iconColor} />
-      </View>
-      <Text style={[styles.quickLabel, { color: C.text, fontSize: scaleFont(12) }]} numberOfLines={1}>
-        {label}
-      </Text>
-      <Text style={[styles.quickSub, { color: C.textFaint, fontSize: scaleFont(10) }]} numberOfLines={1}>
-        {sub}
-      </Text>
+      <Ionicons name={icon} size={20} color="#c084fc" />
+      <Text style={styles.actionBtnTxt}>{label}</Text>
     </Pressable>
-  );
-}
-
-function DataSourcePill({ loading, source, apiBaseUrl, lastError, locationNote, onRetry }) {
-  const { colors: C } = useTheme();
-
-  if (loading) {
-    return (
-      <View style={styles.pillRow}>
-        <ActivityIndicator size="small" color={C.accentCyan} />
-        <Text style={[styles.pillHint, { color: C.textFaint }]}>Syncing…</Text>
-      </View>
-    );
-  }
-  if (lastError) {
-    return (
-      <View style={styles.pillRow}>
-        <View style={[styles.pill, { backgroundColor: 'rgba(148,163,184,0.1)', borderColor: 'rgba(148,163,184,0.22)' }]}>
-          <Text style={[styles.pillText, { color: C.textMuted }]}>Offline</Text>
-        </View>
-        <Pressable onPress={onRetry} style={{ flex: 1 }}>
-          <Text style={[styles.pillHint, { color: C.textFaint }]} numberOfLines={2}>
-            {lastError} · tap to retry
-          </Text>
-        </Pressable>
-      </View>
-    );
-  }
-  return (
-    <View style={styles.pillRow}>
-      <View style={[styles.pill, { backgroundColor: 'rgba(139,92,246,0.1)', borderColor: 'rgba(139,92,246,0.25)' }]}>
-        <Text style={[styles.pillText, { color: C.accentCyan }]}>Live API</Text>
-      </View>
-      <Text style={[styles.pillHint, { color: C.textFaint }]} numberOfLines={1}>
-        {locationNote || apiBaseUrl}
-      </Text>
-    </View>
   );
 }
 
@@ -414,125 +391,274 @@ function DataSourcePill({ loading, source, apiBaseUrl, lastError, locationNote, 
 // Styles
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  flex:   { flex: 1 },
-  scroll: { paddingTop: 8 },
+  flex: { flex: 1 },
+  scroll: {},
 
-  // ── Nav Bar (ELECTRA) ──
-  navBarPill: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    borderWidth: 1, borderRadius: 999,
-    paddingHorizontal: 16, paddingVertical: 10,
-    marginBottom: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5,
+  // Navbar
+  navBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#000000",
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    marginBottom: 24,
   },
-  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  navLogoElectra: { 
-    width: 28, height: 28, borderRadius: 14, 
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#8b5cf6', // purple accent
+  navBrand: { flexDirection: "row", alignItems: "center", gap: 8 },
+  navLogoElectra: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#a855f7",
   },
-  navBrandText: { fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
-  navLinks: { flexDirection: 'row', alignItems: 'center', gap: 32 },
+  navBrandText: {
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+    color: "#ffffff",
+  },
+  navLinks: { flexDirection: "row", alignItems: "center", gap: 32 },
   navLinkContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
     height: 32,
   },
-  navLink: { fontWeight: '700', fontSize: 13 },
+  navLinkInactive: { fontWeight: "600", fontSize: 14, color: "#a1a1aa" },
+  navLinkActive: { fontWeight: "700", fontSize: 14, color: "#d8b4fe" },
   navLinkActiveBar: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -4,
-    width: '100%',
+    width: "100%",
     height: 2,
     borderRadius: 2,
+    backgroundColor: "#d8b4fe",
   },
-  navActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  navActions: { flexDirection: "row", alignItems: "center", gap: 16 },
   avatarWrap: {
-    width: 32, height: 32, borderRadius: 16,
-    overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
-  avatarImg: { width: '100%', height: '100%', resizeMode: 'cover' },
+  avatarImg: { width: "100%", height: "100%", resizeMode: "cover" },
 
-  // ── User Row ──
-  userRow:      { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingTop: 6 },
-  greeting:     { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 2 },
-  vehicleName:  { fontWeight: '800', marginBottom: 2 },
-  headerActions:{ flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconBtn: {
-    height: 44, width: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, backgroundColor: 'transparent',
-  },
-  sosBtn: {
-    height: 44, width: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(239,68,68,0.4)',
-    backgroundColor: 'rgba(239,68,68,0.08)',
-  },
+  // Grid
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 16 },
+  gridItem: { minWidth: 280 },
 
-  // ── Hero (Landing Page Mock) ──
-  hero:         { marginBottom: 28 },
-  heroTitle:    { fontWeight: '900', letterSpacing: -1.5 },
-  heroSub:      { lineHeight: 24, fontWeight: '500' },
-  heroCtas:     { flexDirection: 'row', gap: 12, marginTop: 32 },
-  ctaPrimary: {
-    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 8,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  ctaPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 14 },
-  ctaSecondary: {
-    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 8, borderWidth: 1,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  ctaSecondaryText: { fontWeight: '700', fontSize: 14 },
-  heroImgWrap:  { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 24 },
-  heroImg:      { width: '100%', height: 340 },
-
-  // ── Feature Cards (Landing Page Mock) ──
-  featureRow:  { flexDirection: 'column', gap: 16, marginBottom: 40 },
-  featureCardMock: {
-    flex: 1, minWidth: 150,
-    borderRadius: 16, borderWidth: 1,
+  // Cards
+  card: {
+    backgroundColor: "#161421",
+    borderRadius: 20,
     padding: 20,
-    justifyContent: 'flex-start'
+    flexDirection: "column",
+    borderWidth: 1,
+    borderColor: "#1f1c2c",
   },
-  featureIconWrap: {
-    marginBottom: 20,
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
-  featureTitleMock: { fontWeight: '700', marginBottom: 8, letterSpacing: -0.3 },
-  featureSubMock:   { fontWeight: '500', lineHeight: 18 },
+  cardTitle: { color: "#ffffff", fontSize: 16, fontWeight: "600" },
 
-  // ── Section Label ──
-  sectionLabel: { marginTop: 24, marginBottom: 14 },
-  sectionTitle: { fontWeight: '800' },
-  sectionSub:   { marginTop: 4, fontWeight: '500' },
-
-  // ── Station Grid ──
-  stationGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 14, paddingVertical: 4 },
-  stationGridItem: { flexGrow: 1, flexBasis: '48%', minWidth: 280, maxWidth: '100%', alignSelf: 'stretch' },
-  emptyHint:       { textAlign: 'center', marginBottom: 16 },
-
-  // ── Quick Actions ──
-  quickGrid: {
-    flexDirection: 'row', flexWrap: 'wrap',
-    alignItems: 'stretch', gap: 10, marginTop: 4,
+  // Vehicle Card
+  vehicleName: {
+    color: "#e2e8f0",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
   },
-  quickCard: {
-    flexGrow: 1, minWidth: 100,
-    borderRadius: 14, borderWidth: 1,
-    padding: 14,
+  carImgWrap: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 120,
   },
-  quickIcon: {
-    width: 40, height: 40, borderRadius: 11,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+  carImg: { width: "100%", height: 120, resizeMode: "contain" },
+  vehicleFooter: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 12,
   },
-  quickLabel: { fontWeight: '700' },
-  quickSub:   { marginTop: 3, fontWeight: '600', letterSpacing: 0.2 },
+  footerLabel: { color: "#a1a1aa", fontSize: 12, marginBottom: 4 },
+  footerValue: { color: "#ffffff", fontSize: 16, fontWeight: "700" },
+  chargingTrack: {
+    height: 6,
+    backgroundColor: "#1f1c2c",
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  chargingFill: { height: "100%", backgroundColor: "#34d399", borderRadius: 3 },
 
-  // ── Data Source Pill ──
-  pillRow:  { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginTop: 8 },
-  pill:     { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },
-  pillText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
-  pillHint: { flex: 1, flexShrink: 1, minWidth: 0, fontSize: 10, lineHeight: 14 },
+  // Battery Card
+  batteryCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 16,
+  },
+  batteryCircleTrack: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 10,
+    borderColor: "#1f1c2c",
+    alignItems: "center",
+    justifyContent: "center",
+    borderLeftColor: "#a855f7",
+    borderTopColor: "#a855f7",
+    transform: [{ rotate: "-45deg" }],
+  },
+  batteryCircleInner: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    transform: [{ rotate: "45deg" }],
+  },
+  batteryCircleFill: { position: "absolute" }, // Would use SVG for perfect partial arc in prod
+  batteryPct: { color: "#ffffff", fontSize: 32, fontWeight: "800" },
+  batteryStatusTxt: {
+    color: "#94a3b8",
+    fontSize: 13,
+    marginTop: 16,
+    fontWeight: "600",
+  },
+
+  // Map Card
+  mapArea: {
+    flex: 1,
+    backgroundColor: "#1a1728",
+    borderRadius: 12,
+    overflow: "hidden",
+    position: "relative",
+    minHeight: 160,
+  },
+  mapLine: {
+    position: "absolute",
+    width: 400,
+    height: 2,
+    backgroundColor: "rgba(168,85,247,0.1)",
+  },
+  mapPin: {
+    position: "absolute",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#9333ea",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mapPinLg: {
+    position: "absolute",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(216,180,254,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mapPinLgInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#d8b4fe",
+  },
+  stationOverlay: {
+    position: "absolute",
+    bottom: 12,
+    left: 12,
+    right: 12,
+    backgroundColor: "#26223a",
+    borderRadius: 12,
+    padding: 12,
+  },
+  stationName: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  stationRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  stationLabel: { color: "#94a3b8", fontSize: 12 },
+  stationValue: { color: "#e2e8f0", fontSize: 12, fontWeight: "600" },
+
+  // Trips
+  tripList: { gap: 16, flex: 1 },
+  tripItem: { flexDirection: "row", alignItems: "center", gap: 12 },
+  tripIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tripTitle: { color: "#e2e8f0", fontSize: 14, fontWeight: "600" },
+  tripSub: { color: "#94a3b8", fontSize: 12, marginTop: 2 },
+  tripTime: { color: "#94a3b8", fontSize: 11 },
+  tripDist: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 4,
+    textAlign: "right",
+  },
+  viewAllBtn: { marginTop: "auto", paddingTop: 16, alignItems: "center" },
+  viewAllTxt: { color: "#c084fc", fontSize: 13, fontWeight: "700" },
+
+  // Actions
+  actionList: { gap: 12, flex: 1 },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#1d1a2f",
+    padding: 16,
+    borderRadius: 12,
+  },
+  actionBtnTxt: { color: "#e2e8f0", fontSize: 14, fontWeight: "600" },
+
+  // Cost Overview
+  badge: {
+    backgroundColor: "rgba(168,85,247,0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  badgeText: { color: "#c084fc", fontSize: 10, fontWeight: "700" },
+  costTotal: { color: "#ffffff", fontSize: 24, fontWeight: "800" },
+  costLabel: { color: "#94a3b8", fontSize: 12, marginTop: 2 },
+  chartWrap: { flex: 1, flexDirection: "row", marginTop: 10, minHeight: 120 },
+  chartYAxis: {
+    justifyContent: "space-between",
+    paddingRight: 12,
+    paddingBottom: 6,
+  },
+  chartAxisLabel: { color: "#64748b", fontSize: 10 },
+  chartBars: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    paddingBottom: 6,
+  },
+  bar: { width: 12, borderRadius: 4 },
+  chartXAxis: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingLeft: 30,
+    marginTop: 4,
+  },
 });
