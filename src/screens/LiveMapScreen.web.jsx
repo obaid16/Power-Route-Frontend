@@ -60,7 +60,7 @@ const userIcon = createDotIcon('#00D97E', 20, '#ffffff');
 
 const stationIcon = L.divIcon({
   html: `
-    <div style="background-color: #006A4E; width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(14,165,233,0.4);">
+    <div style="background-color: #7c3aed; width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(139,92,246,0.4);">
       <span style="color: white; font-size: 14px;">⚡</span>
     </div>
   `,
@@ -73,21 +73,21 @@ const stationIcon = L.divIcon({
 const targetStationIcon = L.divIcon({
   html: `
     <div style="
-      background-color: #10b981; 
+      background-color: #8b5cf6; 
       width: 36px; height: 36px; 
       border-radius: 50%; 
       border: 3px solid white; 
       display: flex; align-items: center; justify-content: center; 
-      box-shadow: 0 0 15px #10b981;
+      box-shadow: 0 0 15px #8b5cf6;
       animation: map-pulse 2s infinite;
     ">
       <span style="color: white; font-size: 18px;">⚡</span>
     </div>
     <style>
       @keyframes map-pulse {
-        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+        70% { box-shadow: 0 0 0 20px rgba(139, 92, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
       }
     </style>
   `,
@@ -364,38 +364,91 @@ export function LiveMapScreen() {
 
           {/* ETA card */}
           {targetStation ? (
-            <GlassCard padding={isNarrow ? 14 : isLargeScreen ? 20 : 16}>
-              <View style={styles.etaRow}>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[styles.etaLabel, { fontSize: (isLargeScreen ? 12 : 11) * Math.min(fontScale, 1.08), color: colors.textFaint }]}>
-                    Route ETA
-                  </Text>
-                  <Text style={[styles.etaBig, { fontSize: (isLargeScreen ? 28 : 24) * Math.min(fontScale, 1.12), color: colors.text }]}>
-                    {routeData.etaMinutes} min · {formatDistance(routeData.etaKm)}
-                  </Text>
+            <GlassCard padding={isNarrow ? 12 : 16}>
+              <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+                {/* Station Visual (Mockup Image Parity) */}
+                <View style={{
+                  width: 64, height: 64, borderRadius: 12,
+                  overflow: 'hidden', borderWidth: 1.5, borderColor: `${colors.accentCyan}40`,
+                  backgroundColor: `${colors.accentCyan}15`,
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Ionicons name="flash" size={24} color={colors.accentCyan} />
                 </View>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <Pressable onPress={() => goToStation(targetStation.id)}
-                    style={[styles.navBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.borderSoft }, isLargeScreen && { paddingHorizontal: 16 }]}
-                  >
-                    <Text style={[styles.navBtnTxt, { color: colors.text, fontSize: isLargeScreen ? 14 : 12 }]}>Details</Text>
-                  </Pressable>
-                  <Pressable onPress={() => {
-                    const url = `https://www.google.com/maps/dir/?api=1&destination=${targetStation.latitude},${targetStation.longitude}`;
-                    window.open(url, '_blank');
-                  }}
-                    style={[styles.navBtn, { backgroundColor: colors.accentCyan }, isLargeScreen && { paddingHorizontal: 22, paddingVertical: 14 }]}
-                  >
-                    <Text style={[styles.navBtnTxt, { fontSize: isLargeScreen ? 14 : 12 }]}>Navigate</Text>
-                  </Pressable>
+
+                {/* Details */}
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontWeight: '800', color: colors.text, fontSize: scaleFont(16) }} numberOfLines={1}>
+                      {targetStation.name}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                      <Ionicons name="star" size={13} color="#fbbf24" />
+                      <Text style={{ fontSize: scaleFont(12), fontWeight: '700', color: colors.text }}>
+                        {targetStation.rating?.toFixed(1) || '4.5'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={{ color: colors.textMuted, fontSize: scaleFont(12), marginTop: 2 }} numberOfLines={1}>
+                    {targetStation.address || 'MG Road, Bangalore'} · {formatDistance(routeData.etaKm || 2.4)}
+                  </Text>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                    <View style={{
+                      backgroundColor: `${colors.accentCyan}15`,
+                      borderColor: `${colors.accentCyan}30`,
+                      borderWidth: 1,
+                      borderRadius: 6,
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                    }}>
+                      <Text style={{ color: colors.accentCyan, fontSize: scaleFont(11), fontWeight: '800' }}>
+                        Available · {targetStation.availablePorts ?? 2}/{targetStation.totalPorts ?? 8}
+                      </Text>
+                    </View>
+                    <Text style={{ color: colors.textFaint, fontSize: scaleFont(11), fontWeight: '600' }}>
+                      DC Fast Charger
+                    </Text>
+                  </View>
                 </View>
               </View>
-              <View style={[styles.divider, { borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]} />
-              <View style={styles.footRow}>
-                <Ionicons name="navigate" size={isLargeScreen ? 16 : 14} color={colors.accentMint} />
-                <Text style={[styles.foot, { fontSize: (isLargeScreen ? 13 : 12) * Math.min(fontScale, 1.08), color: colors.textMuted }]} numberOfLines={2}>
-                  {targetStation.name} · {targetStation.availablePorts ?? '?'} ports free · {targetStation.maxKw} kW
-                </Text>
+
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+                <Pressable onPress={() => goToStation(targetStation.id)}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    backgroundColor: colors.accentCyan,
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.85 : 1,
+                  })}
+                >
+                  <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: scaleFont(13) }}>
+                    View Details
+                  </Text>
+                </Pressable>
+                
+                <Pressable onPress={() => {
+                  const url = `https://www.google.com/maps/dir/?api=1&destination=${targetStation.latitude},${targetStation.longitude}`;
+                  window.open(url, '_blank');
+                }}
+                  style={({ pressed }) => ({
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: colors.borderSoft,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.85 : 1,
+                  })}
+                >
+                  <Ionicons name="navigate-outline" size={16} color={colors.text} />
+                </Pressable>
               </View>
             </GlassCard>
           ) : (
@@ -454,7 +507,7 @@ const styles = StyleSheet.create({
   etaLabel: { fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
   etaBig: { marginTop: 4, fontWeight: '700', letterSpacing: -0.5 },
   navBtn: { paddingHorizontal: 18, paddingVertical: 12, borderRadius: 12 },
-  navBtnTxt: { fontWeight: '800', color: '#020617' },
+  navBtnTxt: { fontWeight: '800', color: '#ffffff' },
   divider: { marginTop: 12, paddingTop: 12, borderTopWidth: 1 },
   footRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   foot: { flex: 1, lineHeight: 18 },

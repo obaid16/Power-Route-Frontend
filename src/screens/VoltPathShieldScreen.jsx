@@ -183,7 +183,7 @@ export function VoltPathShieldScreen() {
         {/* Hero */}
         <View style={[styles.hero, { borderColor: isDark ? colors.borderSoft : 'rgba(0,0,0,0.08)', backgroundColor: isDark ? 'transparent' : '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 12, elevation: isDark ? 0 : 2 }]}>
           <LinearGradient
-            colors={isDark ? ['rgba(0,217,126,0.12)', 'transparent'] : ['rgba(0,106,78,0.08)', 'transparent']}
+            colors={isDark ? [`${colors.accentCyan}20`, 'transparent'] : [`${colors.accentCyan}15`, 'transparent']}
             style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -245,7 +245,7 @@ export function VoltPathShieldScreen() {
                 (isTablet || isLargeScreen) && { flex: 1, marginTop: 0 }
               ]}
             >
-              <Text style={[styles.btnPrimaryTxt, { color: isDark ? '#020617' : '#fff' }]}>
+              <Text style={[styles.btnPrimaryTxt, { color: '#ffffff' }]}>
                 {safetyOn ? 'Safety on' : 'Activate safety mode'}
               </Text>
             </Pressable>
@@ -280,6 +280,83 @@ export function VoltPathShieldScreen() {
               <Text style={[styles.btnSosTxt, { color: isDark ? '#fecdd3' : '#ffffff' }]}>Emergency SOS</Text>
             </Pressable>
           </View>
+        </View>
+
+        {/* Quick Safety Actions Grid */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 4, marginTop: 16 }}>
+          {[
+            {
+              icon: 'warning',
+              label: 'Emergency SOS',
+              sub: 'Instant alert',
+              color: '#ef4444',
+              bg: 'rgba(239,68,68,0.12)',
+              border: 'rgba(239,68,68,0.3)',
+              onPress: () => navigation.navigate('EmergencySOS'),
+            },
+            {
+              icon: 'location',
+              label: 'Share Location',
+              sub: 'Live GPS share',
+              color: '#3b82f6',
+              bg: 'rgba(59,130,246,0.12)',
+              border: 'rgba(59,130,246,0.3)',
+              onPress: async () => {
+                try {
+                  await api('/women-safety/share-location', {
+                    method: 'POST',
+                    body: { lat: userCoord.latitude, lng: userCoord.longitude, message: 'VoltPath Shield Live Location Share' }
+                  });
+                  showToast('Live location shared with guardians.');
+                } catch (err) { showToast(err.message || 'Share failed.'); }
+              },
+            },
+            {
+              icon: 'shield-checkmark',
+              label: 'Safety Tips',
+              sub: 'Night travel guide',
+              color: '#10B981',
+              bg: 'rgba(16,185,129,0.12)',
+              border: 'rgba(16,185,129,0.3)',
+              onPress: () => showToast('Safety tips: Stay in well-lit areas, keep phone charged.'),
+            },
+            {
+              icon: 'flag',
+              label: 'Report Issue',
+              sub: 'Flag unsafe zone',
+              color: '#f97316',
+              bg: 'rgba(249,115,22,0.12)',
+              border: 'rgba(249,115,22,0.3)',
+              onPress: () => showToast('Issue reported. Thank you for keeping the community safe.'),
+            },
+          ].map((item) => (
+            <Pressable
+              key={item.label}
+              onPress={item.onPress}
+              style={({ pressed }) => ({
+                flexBasis: '47%', flexGrow: 1,
+                borderRadius: 16, borderWidth: 1,
+                borderColor: item.border,
+                backgroundColor: isDark ? item.bg : item.bg,
+                padding: isLargeScreen ? 18 : 14,
+                alignItems: 'flex-start', gap: 10,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <View style={{
+                width: isLargeScreen ? 48 : 42, height: isLargeScreen ? 48 : 42,
+                borderRadius: isLargeScreen ? 24 : 21,
+                backgroundColor: `${item.color}20`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Ionicons name={item.icon} size={isLargeScreen ? 24 : 20} color={item.color} />
+              </View>
+              <View>
+                <Text style={{ fontWeight: '700', color: colors.text, fontSize: scaleFont(13) }}>{item.label}</Text>
+                <Text style={{ color: colors.textFaint, fontSize: scaleFont(11), marginTop: 2, fontWeight: '500' }}>{item.sub}</Text>
+              </View>
+            </Pressable>
+          ))}
         </View>
 
         {/* Smart status */}
@@ -498,7 +575,7 @@ export function VoltPathShieldScreen() {
             }}
             style={[styles.btnPrimary, { marginTop: 16, backgroundColor: colors.accentCyan }]}
           >
-            <Text style={[styles.btnPrimaryTxt, { color: '#020617' }]}>Activate now</Text>
+            <Text style={[styles.btnPrimaryTxt, { color: '#ffffff' }]}>Activate now</Text>
           </Pressable>
         </LinearGradient>
       </ScrollView>

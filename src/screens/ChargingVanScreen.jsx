@@ -142,6 +142,55 @@ export function ChargingVanScreen() {
           Request a portable charger delivered to your location
         </Text>
 
+        {/* ── Hero Service Banner ────────────────────────────────────────────── */}
+        <View style={{
+          borderRadius: 18,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: isDark ? '#0e1424' : '#f8fafc',
+          padding: 20,
+          marginBottom: 20,
+          flexDirection: isTablet || isLargeScreen ? 'row' : 'column',
+          alignItems: isTablet || isLargeScreen ? 'center' : 'flex-start',
+          gap: 16,
+        }}>
+          {/* Van Icon */}
+          <View style={{
+            width: isLargeScreen ? 80 : 64, height: isLargeScreen ? 80 : 64,
+            borderRadius: isLargeScreen ? 40 : 32,
+            backgroundColor: `${colors.accentCyan}15`,
+            borderWidth: 2, borderColor: `${colors.accentCyan}40`,
+            alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <Ionicons name="car" size={isLargeScreen ? 36 : 28} color={colors.accentCyan} />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ fontWeight: '800', color: colors.text, fontSize: scaleFont(isLargeScreen ? 18 : 16), marginBottom: 8 }}>
+              Mobile Charging Service
+            </Text>
+            {/* Service Badges */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {[
+                { icon: 'flash', label: 'Fast Charge', color: colors.accentCyan, bg: `${colors.accentCyan}15`, border: `${colors.accentCyan}40` },
+                { icon: 'leaf-outline', label: 'Eco-Friendly', color: colors.success || '#10b981', bg: `${colors.success || '#10b981'}15`, border: `${colors.success || '#10b981'}40` },
+                { icon: 'shield-checkmark-outline', label: '24/7 Support', color: colors.primary || '#a855f7', bg: `${colors.primary || '#a855f7'}15`, border: `${colors.primary || '#a855f7'}40` },
+                { icon: 'location-outline', label: 'On-Demand', color: colors.warning || '#fbbf24', bg: `${colors.warning || '#fbbf24'}15`, border: `${colors.warning || '#fbbf24'}40` },
+              ].map((badge) => (
+                <View key={badge.label} style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 5,
+                  paddingHorizontal: 10, paddingVertical: 5,
+                  borderRadius: 20, borderWidth: 1,
+                  backgroundColor: badge.bg, borderColor: badge.border,
+                }}>
+                  <Ionicons name={badge.icon} size={11} color={badge.color} />
+                  <Text style={{ color: badge.color, fontSize: scaleFont(11), fontWeight: '700' }}>{badge.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
         {/* Battery warning if low */}
         {batteryPct > 0 && batteryPct <= 20 && (
           <View style={{
@@ -353,11 +402,11 @@ export function ChargingVanScreen() {
                       style={{ paddingVertical: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}
                     >
                       {requesting === van._id ? (
-                        <ActivityIndicator color="#020617" size="small" />
+                        <ActivityIndicator color="#ffffff" size="small" />
                       ) : (
                         <>
-                          <Ionicons name="car" size={16} color="#020617" />
-                          <Text style={{ fontWeight: '800', color: '#020617', fontSize: scaleFont(14) }}>
+                          <Ionicons name="car" size={16} color="#ffffff" />
+                          <Text style={{ fontWeight: '800', color: '#ffffff', fontSize: scaleFont(14) }}>
                             Request this van
                           </Text>
                         </>

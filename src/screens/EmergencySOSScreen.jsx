@@ -294,6 +294,57 @@ export function EmergencySOSScreen() {
           ))}
         </View>
 
+        {/* ── Emergency Contacts ───────────────────────────────────────────── */}
+        <Text style={{ fontWeight: '800', textTransform: 'uppercase', letterSpacing: 2.5, color: colors.textFaint, fontSize: scaleFont(11), marginBottom: 12 }}>
+          Emergency contacts
+        </Text>
+        <View style={{ gap: 10, marginBottom: 28 }}>
+          {[
+            { name: 'Mom',       initial: 'M', phone: '+91 98765 43210', color: '#ec4899', bg: 'rgba(236,72,153,0.12)'  },
+            { name: 'Dad',       initial: 'D', phone: '+91 91234 56789', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)'  },
+            { name: 'Emergency', initial: '!', phone: '112',             color: '#ef4444', bg: 'rgba(239,68,68,0.12)'   },
+          ].map((contact) => (
+            <Pressable
+              key={contact.name}
+              onPress={() => Linking.openURL(`tel:${contact.phone}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`Call ${contact.name}`}
+              style={({ pressed }) => ({
+                flexDirection: 'row', alignItems: 'center', gap: 14,
+                borderRadius: 14, borderWidth: 1,
+                borderColor: colors.borderSoft,
+                backgroundColor: isDark ? 'rgba(15,23,42,0.6)' : 'rgba(255,255,255,0.8)',
+                paddingHorizontal: 16, paddingVertical: 14,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              {/* Avatar Circle */}
+              <View style={{
+                width: isLargeScreen ? 48 : 42, height: isLargeScreen ? 48 : 42,
+                borderRadius: isLargeScreen ? 24 : 21,
+                backgroundColor: contact.bg,
+                borderWidth: 2, borderColor: `${contact.color}40`,
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <Text style={{ fontWeight: '900', color: contact.color, fontSize: scaleFont(isLargeScreen ? 18 : 16) }}>
+                  {contact.initial}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: '700', color: colors.text, fontSize: scaleFont(14) }}>{contact.name}</Text>
+                <Text style={{ color: colors.textFaint, fontSize: scaleFont(12), marginTop: 2 }}>{contact.phone}</Text>
+              </View>
+              <View style={{
+                width: 36, height: 36, borderRadius: 18,
+                backgroundColor: `${contact.color}15`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Ionicons name="call" size={16} color={contact.color} />
+              </View>
+            </Pressable>
+          ))}
+        </View>
+
         {/* ── Open Nearby Stations ─────────────────────────────────────────── */}
         {openStations.length > 0 && (
           <>
