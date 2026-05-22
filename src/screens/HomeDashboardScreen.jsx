@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ScrollView, Text, View, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { ScrollView, Text, View, Pressable, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -94,9 +94,24 @@ export function HomeDashboardScreen() {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Pressable
-                onPress={async () => {
-                  await logout();
-                  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                onPress={() => {
+                  if (Platform.OS === 'web') {
+                    if (window.confirm("Are you sure you want to logout?")) {
+                      logout().then(() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }));
+                    }
+                  } else {
+                    Alert.alert(
+                      "Logout",
+                      "Are you sure you want to logout?",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Logout", style: "destructive", onPress: async () => {
+                          await logout();
+                          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                        }}
+                      ]
+                    );
+                  }
                 }}
                 style={({ pressed }) => ({
                   height: 46, width: 46, borderRadius: 23,

@@ -11,8 +11,7 @@ function stripTrailingSlash(url) {
 }
 
 export function getApiOrigin() {
-  const raw = typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL;
-  return stripTrailingSlash(raw || '') || 'http://localhost:5001';
+  return 'http://192.168.13.224:5001';
 }
 
 export function getApiPrefix() {
