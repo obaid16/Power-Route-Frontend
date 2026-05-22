@@ -9,6 +9,7 @@ import {
   Switch,
   Platform,
   Image,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,6 +24,7 @@ import { useVoltApi } from "../hooks/useVoltApi";
 
 export function VoltPathShieldScreen() {
   const navigation = useNavigation();
+  const stackNav = navigation;
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const {
@@ -175,29 +177,32 @@ export function VoltPathShieldScreen() {
               <Pressable onPress={() => navigation.navigate("Map")}>
                 <Text style={styles.navLinkInactive}>Map</Text>
               </Pressable>
-              <Pressable>
-                <Text style={styles.navLinkInactive}>Vehicles</Text>
+              <Pressable onPress={() => stackNav.navigate("ChargingVan")}>
+                <Text style={styles.navLinkInactive}>Van</Text>
               </Pressable>
               <Pressable style={styles.navLinkContainer}>
                 <Text style={styles.navLinkActive}>Safety</Text>
                 <View style={styles.navLinkActiveBar} />
               </Pressable>
-              <Pressable onPress={() => navigation.navigate("EmergencySOS")}>
+              <Pressable onPress={() => stackNav.navigate("EmergencySOS")}>
                 <Text style={styles.navLinkInactive}>SOS</Text>
               </Pressable>
             </View>
           )}
 
           <View style={styles.navActions}>
-            <Pressable>
+            <Pressable onPress={() => stackNav.navigate("Notifications")}>
               <Ionicons name="notifications" size={18} color="#a1a1aa" />
             </Pressable>
-            <View style={styles.avatarWrap}>
+            <Pressable 
+              style={styles.avatarWrap}
+              onPress={() => Alert.alert("Profile", "Profile screen coming soon!")}
+            >
               <Image
                 source={{ uri: "https://i.pravatar.cc/100?img=47" }}
                 style={styles.avatarImg}
               />
-            </View>
+            </Pressable>
           </View>
         </View>
 
@@ -365,7 +370,11 @@ export function VoltPathShieldScreen() {
 
             <View style={{ flex: 1 }} />
             <Pressable
-              onPress={() => navigation.navigate("EmergencySOS")}
+              onPress={() => {
+                Linking.openURL("tel:112").catch(() => {
+                  Alert.alert("Error", "Could not open dialer. Please dial 112 directly.");
+                });
+              }}
               style={({ pressed }) => [
                 styles.callBtn,
                 pressed && { opacity: 0.8 },

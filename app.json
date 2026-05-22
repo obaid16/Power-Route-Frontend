@@ -46,7 +46,8 @@
           "locationWhenInUsePermission": "PowerRoute uses your location to show nearby EV chargers and navigation."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ]
   }
 }

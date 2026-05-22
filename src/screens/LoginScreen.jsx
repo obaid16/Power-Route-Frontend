@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,6 +16,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useResponsive } from "../hooks/useResponsive";
 import { LinearGradient } from "expo-linear-gradient";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import * as AuthSession from "expo-auth-session";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export function LoginScreen() {
   const navigation = useNavigation();
@@ -98,7 +103,43 @@ export function LoginScreen() {
     }
   };
 
-  const handleSocialLogin = async (provider) => {
+  const redirectUri = AuthSession.makeRedirectUri();
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: "627507009445-jl4c0ptf0o48gjs5i1nbpm0ccdae7vdp.apps.googleusercontent.com",
+    webClientId: "627507009445-jl4c0ptf0o48gjs5i1nbpm0ccdae7vdp.apps.googleusercontent.com",
+    redirectUri,
+  });
+
+  useEffect(() => {
+    console.log("Expected Google Auth Redirect URI:", redirectUri);
+    if (response?.type === "success") {
+      const { authentication } = response;
+      setLoading(true);
+      fetch("https://www.googleapis.com/userinfo/v2/me", {
+        headers: { Authorization: `Bearer ${authentication.accessToken}` },
+      })
+        .then((res) => res.json())
+        .then(async (userInfo) => {
+          try {
+            await socialLogin(userInfo.email, userInfo.name, userInfo.id, "google");
+            navigation.replace("Main");
+          } catch (e) {
+            setError(e.message || "Failed to sign in with Google");
+          } finally {
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          setError("Failed to fetch Google profile");
+          setLoading(false);
+        });
+    } else if (response?.type === "error") {
+      setError("Google authentication failed");
+    }
+  }, [response]);
+
+  const handleSocialLoginMock = async (provider) => {
     setError("");
     setLoading(true);
     try {
@@ -123,14 +164,15 @@ export function LoginScreen() {
   return (
     <ImageBackground
       source={require("../../assets/login_hero.jpg")}
-      style={{ flex: 1 }}
+      style={{ flex: 1, width: "100%", height: "100%" }}
+      imageStyle={{ width: "100%", height: "100%" }}
       resizeMode="cover"
     >
-      <View style={{ flex: 1, backgroundColor: "rgba(9, 8, 18, 0.7)" }}>
+      <View style={{ flex: 1, width: "100%", height: "100%", backgroundColor: "rgba(9, 8, 18, 0.7)" }}>
         {/* ── Two-panel row ─────────────────────────────────── */}
-        <View style={{ flex: 1, flexDirection: "row" }}>
+        <View style={{ flex: 1, flexDirection: "row", backgroundColor: "transparent" }}>
           {/* ── Left Panel (Form) ────────────────────────────── */}
-          <View style={{ flex: 1, position: "relative", backgroundColor: "rgba(9, 8, 18, 0.3)" }}>
+          <View style={{ flex: 1, position: "relative", backgroundColor: "rgba(9, 8, 18, 0.45)" }}>
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -633,8 +675,8 @@ export function LoginScreen() {
                     </View>
 
                     <Pressable
-                      onPress={() => handleSocialLogin("google")}
-                      disabled={loading}
+                      onPress={() => promptAsync()}
+                      disabled={loading || !request}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
@@ -644,8 +686,8 @@ export function LoginScreen() {
                         borderWidth: 1,
                         borderColor: "#1f1c2c",
                         backgroundColor: "#0c0a15",
-                        marginBottom: 16,
-                        opacity: loading ? 0.6 : 1,
+                        marginBottom: 32,
+                        opacity: loading || !request ? 0.6 : 1,
                       }}
                     >
                       <Ionicons name="logo-google" size={20} color="#ea4335" />
@@ -658,34 +700,6 @@ export function LoginScreen() {
                         }}
                       >
                         Continue with Google
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => handleSocialLogin("apple")}
-                      disabled={loading}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: 50,
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        borderColor: "#1f1c2c",
-                        backgroundColor: "#0c0a15",
-                        marginBottom: 32,
-                        opacity: loading ? 0.6 : 1,
-                      }}
-                    >
-                      <Ionicons name="logo-apple" size={20} color="#ffffff" />
-                      <Text
-                        style={{
-                          color: "#e2e8f0",
-                          fontSize: 14,
-                          fontWeight: "600",
-                          marginLeft: 12,
-                        }}
-                      >
-                        Continue with Apple
                       </Text>
                     </Pressable>
 
@@ -753,7 +767,7 @@ export function LoginScreen() {
 
         {/* ── Right Panel (Hero Content) ───────────────────────────── */}
         {isDesktop && (
-          <View style={{ flex: 1.2, position: "relative" }}>
+          <View style={{ flex: 1.2, position: "relative", backgroundColor: "transparent" }}>
             <View
               style={{
                 flex: 1,
@@ -799,7 +813,8 @@ export function LoginScreen() {
                 style={{
                   flexDirection: "row",
                   justifyContent: "center",
-                  gap: 20,
+                  flexWrap: "wrap",
+                  gap: 12,
                   marginBottom: 20,
                 }}
               >

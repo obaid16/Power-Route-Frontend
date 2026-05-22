@@ -1,22 +1,29 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TOKEN_KEY = '@voltpath_auth_token';
+const ACCESS_TOKEN_KEY = '@voltpath_auth_token';
+const REFRESH_TOKEN_KEY = '@voltpath_refresh_token';
 
 // In-memory cache so synchronous getToken() works after the initial async load
-let memoryToken = null;
+let memoryAccessToken = null;
+let memoryRefreshToken = null;
 
 /**
  * Call once at app startup (before AuthContext bootstrap runs).
- * Loads the persisted token into the in-memory cache.
+ * Loads the persisted tokens into the in-memory cache.
  */
 export async function initializeToken() {
   try {
-    const token = await AsyncStorage.getItem(TOKEN_KEY);
-    memoryToken = token || null;
-    return memoryToken;
+    const [access, refresh] = await Promise.all([
+      AsyncStorage.getItem(ACCESS_TOKEN_KEY),
+      AsyncStorage.getItem(REFRESH_TOKEN_KEY),
+    ]);
+    memoryAccessToken = access || null;
+    memoryRefreshToken = refresh || null;
+    return memoryAccessToken;
   } catch (error) {
-    console.error('Failed to load token from storage:', error);
-    memoryToken = null;
+    console.error('Failed to load tokens from storage:', error);
+    memoryAccessToken = null;
+    memoryRefreshToken = null;
     return null;
   }
 }
@@ -24,36 +31,60 @@ export async function initializeToken() {
 /** Alias for AuthContext compatibility */
 export const loadToken = initializeToken;
 
-/** Synchronous read from in-memory cache (populated by initializeToken on app start) */
+/** Synchronous read from in-memory cache */
 export function getToken() {
-  return memoryToken;
+  return memoryAccessToken;
+}
+
+/** Synchronous read of refresh token from in-memory cache */
+export function getRefreshToken() {
+  return memoryRefreshToken;
 }
 
 /**
- * Persist token to AsyncStorage AND update the in-memory cache.
- * Pass null/undefined to clear the token.
+ * Persist access token (and optionally refresh token) to AsyncStorage
+ * AND update the in-memory cache.
+ * Pass null/undefined to clear.
  */
-export async function setToken(token) {
-  memoryToken = token || null;
+export async function setToken(accessToken, refreshToken) {
+  memoryAccessToken = accessToken || null;
   try {
-    if (token) {
-      await AsyncStorage.setItem(TOKEN_KEY, token);
+    if (accessToken) {
+      await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     } else {
-      await AsyncStorage.removeItem(TOKEN_KEY);
+      await AsyncStorage.removeItem(ACCESS_TOKEN_KEY);
     }
   } catch (error) {
-    console.error('Failed to save token to storage:', error);
+    console.error('Failed to save access token to storage:', error);
+  }
+
+  // Only update refresh token if explicitly provided
+  if (refreshToken !== undefined) {
+    memoryRefreshToken = refreshToken || null;
+    try {
+      if (refreshToken) {
+        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      } else {
+        await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
+      }
+    } catch (error) {
+      console.error('Failed to save refresh token to storage:', error);
+    }
   }
 }
 
 /**
- * Clear the JWT token — removes from AsyncStorage and clears cache.
+ * Clear both JWT tokens — removes from AsyncStorage and clears cache.
  */
 export async function clearToken() {
-  memoryToken = null;
+  memoryAccessToken = null;
+  memoryRefreshToken = null;
   try {
-    await AsyncStorage.removeItem(TOKEN_KEY);
+    await Promise.all([
+      AsyncStorage.removeItem(ACCESS_TOKEN_KEY),
+      AsyncStorage.removeItem(REFRESH_TOKEN_KEY),
+    ]);
   } catch (error) {
-    console.error('Failed to clear token from storage:', error);
+    console.error('Failed to clear tokens from storage:', error);
   }
 }

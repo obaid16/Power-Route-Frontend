@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ScrollView, ActivityIndicator, Image, Dimensions, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -323,10 +323,10 @@ export function LiveMapScreen() {
             {/* Links */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 32 }}>
               {[
-                { label: 'Home',     active: false, onPress: () => navigation.navigate('HomeDashboard') },
+                { label: 'Home',     active: false, onPress: () => navigation.navigate('Home') },
                 { label: 'Map',      active: true,  onPress: () => {} },
-                { label: 'Vehicles', active: false, onPress: () => {} },
-                { label: 'Safety',   active: false, onPress: () => navigation.navigate('WomenSafety') },
+                { label: 'Van',      active: false, onPress: () => navigation.navigate('ChargingVan') },
+                { label: 'Safety',   active: false, onPress: () => navigation.navigate('VoltPathShield') },
                 { label: 'SOS',      active: false, onPress: () => navigation.navigate('EmergencySOS') },
               ].map(({ label, active, onPress }) => (
                 <Pressable key={label} onPress={onPress} style={{ alignItems: 'center', justifyContent: 'center', position: 'relative', height: 32 }}>
@@ -339,11 +339,16 @@ export function LiveMapScreen() {
             </View>
             {/* Actions */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <Ionicons name="notifications" size={18} color={colors.textMuted} />
+              <Pressable onPress={() => navigation.navigate('Notifications')}>
+                <Ionicons name="notifications" size={18} color={colors.textMuted} />
+              </Pressable>
               <ThemeToggle size="sm" showLabel={false} />
-              <View style={{ width: 32, height: 32, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
+              <Pressable 
+                style={{ width: 32, height: 32, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}
+                onPress={() => Alert.alert("Profile", "Profile screen coming soon!")}
+              >
                 <Image source={{ uri: 'https://i.pravatar.cc/100?img=47' }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
-              </View>
+              </Pressable>
             </View>
           </View>
 

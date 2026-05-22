@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   Platform,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -76,13 +77,13 @@ export function HomeDashboardScreen() {
               <Pressable onPress={() => navigation.navigate("Map")}>
                 <Text style={styles.navLinkInactive}>Map</Text>
               </Pressable>
-              <Pressable>
-                <Text style={styles.navLinkInactive}>Vehicles</Text>
+              <Pressable onPress={() => stackNav.navigate("ChargingVan")}>
+                <Text style={styles.navLinkInactive}>Van</Text>
               </Pressable>
-              <Pressable onPress={() => stackNav.navigate("WomenSafety")}>
+              <Pressable onPress={() => navigation.navigate("VoltPathShield")}>
                 <Text style={styles.navLinkInactive}>Safety</Text>
               </Pressable>
-              <Pressable onPress={() => navigation.navigate("EmergencySOS")}>
+              <Pressable onPress={() => stackNav.navigate("EmergencySOS")}>
                 <Text style={styles.navLinkInactive}>SOS</Text>
               </Pressable>
             </View>
@@ -95,12 +96,15 @@ export function HomeDashboardScreen() {
             <Pressable>
               <Ionicons name="moon" size={18} color="#a1a1aa" />
             </Pressable>
-            <View style={styles.avatarWrap}>
+            <Pressable 
+              style={styles.avatarWrap}
+              onPress={() => Alert.alert("Profile", "Profile screen coming soon!")}
+            >
               <Image
                 source={{ uri: "https://i.pravatar.cc/100?img=47" }}
                 style={styles.avatarImg}
               />
-            </View>
+            </Pressable>
           </View>
         </View>
 

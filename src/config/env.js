@@ -11,7 +11,11 @@ function stripTrailingSlash(url) {
 }
 
 export function getApiOrigin() {
-  // Use the deployed backend URL
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl) {
+    return stripTrailingSlash(envUrl);
+  }
+  // Fallback to the deployed backend URL if EXPO_PUBLIC_API_URL is missing
   return 'https://power-route-backend.onrender.com';
 }
 
