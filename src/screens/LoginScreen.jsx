@@ -121,11 +121,16 @@ export function LoginScreen() {
       : email && password && (mode === "signup" ? name && confirmPassword : true);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#090812" }}>
-      {/* ── Two-panel row ─────────────────────────────────── */}
-      <View style={{ flex: 1, flexDirection: "row" }}>
-        {/* ── Left Panel (Form) ────────────────────────────── */}
-        <View style={{ flex: 1, position: "relative" }}>
+    <ImageBackground
+      source={require("../../assets/login_hero.jpg")}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <View style={{ flex: 1, backgroundColor: "rgba(9, 8, 18, 0.7)" }}>
+        {/* ── Two-panel row ─────────────────────────────────── */}
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          {/* ── Left Panel (Form) ────────────────────────────── */}
+          <View style={{ flex: 1, position: "relative", backgroundColor: "rgba(9, 8, 18, 0.3)" }}>
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -746,17 +751,15 @@ export function LoginScreen() {
           </KeyboardAvoidingView>
         </View>
 
-        {/* ── Right Panel (Image) ───────────────────────────── */}
+        {/* ── Right Panel (Hero Content) ───────────────────────────── */}
         {isDesktop && (
           <View style={{ flex: 1.2, position: "relative" }}>
-            <ImageBackground
-              source={require("../../assets/login_hero.jpg")}
+            <View
               style={{
                 flex: 1,
                 justifyContent: "space-between",
                 padding: 64,
               }}
-              resizeMode="cover"
             >
               {/* Top Text floating */}
               <View style={{ alignItems: "center", marginTop: 40 }}>
@@ -816,7 +819,7 @@ export function LoginScreen() {
                   sub="We're here for you"
                 />
               </View>
-            </ImageBackground>
+            </View>
           </View>
         )}
       </View>
@@ -828,7 +831,7 @@ export function LoginScreen() {
           paddingHorizontal: 32,
           borderTopWidth: 1,
           borderColor: "#1f1c2c",
-          backgroundColor: "#090812",
+          backgroundColor: "rgba(9, 8, 18, 0.8)",
         }}
       >
         <View
@@ -849,7 +852,8 @@ export function LoginScreen() {
           © 2024 Power Route. All rights reserved.
         </Text>
       </View>
-    </View>
+      </View>
+    </ImageBackground>
   );
 }
 
