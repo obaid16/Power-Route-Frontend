@@ -11,7 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { ScreenBackground } from "../components";
+import { ScreenBackground, Footer } from "../components";
 import { useMainStackNav } from "../hooks/useMainStackNav";
 import { useResponsive } from "../hooks/useResponsive";
 import { useAuth } from "../context/AuthContext";
@@ -342,6 +342,8 @@ export function HomeDashboardScreen() {
               <Text style={styles.chartAxisLabel}>May 30</Text>
             </View>
           </View>
+          {/* ── Footer ───────────────────────────── */}
+          <Footer />
         </View>
       </ScrollView>
     </View>
