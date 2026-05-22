@@ -1,81 +1,76 @@
-/**
- * LoginScreen — PowerRoute mobile
- *
- * Screens:
- *  'login'  → email + password
- *  'signup' → name + email + phone + password → sends OTP
- *  'otp'    → 6-digit OTP verification
- */
-import { useRef, useState } from 'react';
+import { useRef, useState } from "react";
 import {
-  ActivityIndicator, KeyboardAvoidingView, Platform,
-  Pressable, ScrollView, Text, TextInput, View,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ScreenBackground, GlassCard, ThemeToggle } from '../components';
-import { useAuth } from '../context/AuthContext';
-import { getApiBaseUrl } from '../config/env';
-import { useResponsive } from '../hooks/useResponsive';
-import { useTheme } from '../context/ThemeContext';
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  ImageBackground,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
+import { useResponsive } from "../hooks/useResponsive";
 
 export function LoginScreen() {
   const navigation = useNavigation();
   const { login, signup, verifyEmail, resendOtp } = useAuth();
-  const { colors, isDark } = useTheme();
-  const { horizontalPadding, loginMaxWidth, scaleFont, iconSize, isLargeScreen } = useResponsive();
+  const { isLargeScreen, isTablet, isMobile } = useResponsive();
+
+  const isDesktop = isLargeScreen || (!isMobile && !isTablet);
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [mode, setMode]         = useState('login');   // 'login' | 'signup' | 'otp'
-  const [name, setName]         = useState('');
-  const [email, setEmail]       = useState('');
-  const [phone, setPhone]       = useState('');
-  const [password, setPassword] = useState('');
-  const [otp, setOtp]           = useState(['', '', '', '', '', '']);
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-  const [focusedOtpIndex, setFocusedOtpIndex] = useState(null);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   const otpRefs = useRef([]);
-
-  const inputBg     = isDark ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.95)';
-  const inputBorder = isDark ? 'rgba(0,217,126,0.12)' : 'rgba(100,116,139,0.18)';
 
   // ── OTP box helpers ────────────────────────────────────────────────────────
   const handleOtpChange = (val, idx) => {
     const next = [...otp];
-    next[idx] = val.replace(/\D/g, '').slice(-1);
+    next[idx] = val.replace(/\D/g, "").slice(-1);
     setOtp(next);
     if (val && idx < 5) otpRefs.current[idx + 1]?.focus();
   };
 
   const handleOtpKeyPress = (e, idx) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[idx] && idx > 0) {
+    if (e.nativeEvent.key === "Backspace" && !otp[idx] && idx > 0) {
       otpRefs.current[idx - 1]?.focus();
     }
   };
 
-  const otpValue = otp.join('');
+  const otpValue = otp.join("");
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const submit = async () => {
-    setError('');
+    setError("");
     setLoading(true);
     try {
-      if (mode === 'login') {
+      if (mode === "login") {
         await login(email.trim(), password);
-        navigation.replace('Main');
-      } else if (mode === 'signup') {
+        navigation.replace("Main");
+      } else if (mode === "signup") {
         await signup(name.trim(), email.trim(), phone.trim(), password);
-        setMode('otp');
-      } else if (mode === 'otp') {
+        setMode("otp");
+      } else if (mode === "otp") {
         await verifyEmail(email.trim(), otpValue);
-        navigation.replace('Main');
+        navigation.replace("Main");
       }
     } catch (e) {
-      setError(e.message || 'Something went wrong');
+      setError(e.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -83,286 +78,617 @@ export function LoginScreen() {
 
   const handleResend = async () => {
     setResending(true);
-    setError('');
+    setError("");
     try {
       await resendOtp(email.trim());
-      setOtp(['', '', '', '', '', '']);
-      setError('');
+      setOtp(["", "", "", "", "", ""]);
     } catch (e) {
-      setError(e.message || 'Could not resend OTP');
+      setError(e.message || "Could not resend OTP");
     } finally {
       setResending(false);
     }
   };
 
-  const canSubmit = mode === 'otp' ? otpValue.length === 6 : email && password;
-
-  const logoSize = iconSize.lg + (isLargeScreen ? 34 : 26);
+  const canSubmit = mode === "otp" ? otpValue.length === 6 : email && password;
 
   return (
-    <ScreenBackground>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
+    <View style={{ flex: 1, flexDirection: "row", backgroundColor: "#090812" }}>
+      {/* ── Left Panel (Form) ────────────────────────────── */}
+      <View style={{ flex: 1, position: "relative" }}>
+        <KeyboardAvoidingView
           style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1, justifyContent: 'center',
-            paddingHorizontal: horizontalPadding, paddingVertical: 24,
-          }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <View style={loginMaxWidth ? { maxWidth: loginMaxWidth, width: '100%', alignSelf: 'center' } : undefined}>
-
-            {/* Theme toggle */}
-            <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
-              <ThemeToggle size="sm" showLabel />
-            </View>
-
-            {/* Logo with Gradient Border & Glow */}
-            <View style={{ marginBottom: 32, alignItems: 'center' }}>
-              <LinearGradient
-                colors={isDark ? [colors.accentCyan, colors.accentMint] : [colors.accentCyan, colors.accentGlow]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingHorizontal: isDesktop ? 64 : 32,
+              paddingTop: 48,
+              paddingBottom: 24,
+              justifyContent: "center",
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View
+              style={{
+                maxWidth: 440,
+                width: "100%",
+                alignSelf: isDesktop ? "flex-start" : "center",
+                marginLeft: isDesktop ? "auto" : 0,
+                marginRight: isDesktop ? 64 : 0,
+              }}
+            >
+              {/* Header */}
+              <View
                 style={{
-                  marginBottom: 16,
-                  padding: 2,
-                  borderRadius: 22,
-                  shadowColor: colors.accentCyan,
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: isDark ? 0.35 : 0.15,
-                  shadowRadius: 16,
-                  elevation: 8,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 8,
                 }}
               >
-                <View style={{
-                  alignItems: 'center', justifyContent: 'center',
-                  borderRadius: 20,
-                  backgroundColor: isDark ? '#0d1f35' : '#ffffff',
-                  height: logoSize, width: logoSize,
-                }}>
-                  <Ionicons name="flash" size={iconSize.lg} color={colors.accentCyan} />
+                <View
+                  style={{
+                    width: 40,
+                    height: 50,
+                    backgroundColor: "#9333ea",
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    borderBottomLeftRadius: 20,
+                    borderBottomRightRadius: 4,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: [{ rotate: "-45deg" }],
+                  }}
+                >
+                  <Ionicons
+                    name="flash"
+                    size={24}
+                    color="#ffffff"
+                    style={{ transform: [{ rotate: "45deg" }] }}
+                  />
                 </View>
-              </LinearGradient>
-              
-              <Text style={{ fontWeight: '800', color: colors.text, fontSize: scaleFont(isLargeScreen ? 34 : 28), letterSpacing: -0.5 }}>
-                PowerRoute
-              </Text>
-              <Text style={{ marginTop: 6, textAlign: 'center', color: colors.textMuted, fontSize: scaleFont(13) }}>
-                {mode === 'otp'
-                  ? `Enter the 6-digit code sent to ${email}`
-                  : mode === 'signup'
-                  ? 'Create your account'
-                  : 'Smart EV navigation & emergency assist'}
-              </Text>
-            </View>
+                <View style={{ marginLeft: 16 }}>
+                  <Text
+                    style={{
+                      color: "#ffffff",
+                      fontSize: 24,
+                      fontWeight: "800",
+                    }}
+                  >
+                    Power <Text style={{ color: "#a855f7" }}>Route</Text>
+                  </Text>
+                  <Text
+                    style={{ color: "#e2e8f0", fontSize: 13, marginTop: 2 }}
+                  >
+                    Charge. Drive. Explore.
+                  </Text>
+                </View>
+              </View>
 
-            {/* Form card */}
-            <GlassCard padding={isLargeScreen ? 24 : 20}>
-              <Text style={{ fontWeight: '700', textTransform: 'uppercase', letterSpacing: 3, color: colors.textFaint, fontSize: scaleFont(11) }}>
-                {mode === 'otp' ? 'Email verification' : 'Secure access'}
-              </Text>
+              <View style={{ marginTop: 40, marginBottom: 32 }}>
+                <Text
+                  style={{ color: "#ffffff", fontSize: 32, fontWeight: "800" }}
+                >
+                  Welcome <Text style={{ color: "#c084fc" }}>Back!</Text>
+                </Text>
+                <Text style={{ color: "#94a3b8", fontSize: 15, marginTop: 8 }}>
+                  Login to continue your EV journey
+                </Text>
+              </View>
 
-              {/* Dynamic Divider Line */}
-              <View style={{ height: 1.5, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)', width: '100%', marginVertical: 14 }} />
-
-              {/* ── OTP mode ─────────────────────────────────────────────── */}
-              {mode === 'otp' ? (
+              {/* Form fields */}
+              {mode === "otp" ? (
                 <>
-                  <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 14 }}>
+                  <Text
+                    style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12 }}
+                  >
+                    Enter the 6-digit code sent to {email}
+                  </Text>
+                  <View
+                    style={{ flexDirection: "row", gap: 8, marginBottom: 24 }}
+                  >
                     {otp.map((digit, i) => (
                       <TextInput
                         key={i}
-                        ref={(r) => { otpRefs.current[i] = r; }}
+                        ref={(r) => {
+                          otpRefs.current[i] = r;
+                        }}
                         value={digit}
                         onChangeText={(v) => handleOtpChange(v, i)}
                         onKeyPress={(e) => handleOtpKeyPress(e, i)}
-                        onFocus={() => setFocusedOtpIndex(i)}
-                        onBlur={() => setFocusedOtpIndex(null)}
                         keyboardType="number-pad"
                         maxLength={1}
-                        selectTextOnFocus
                         style={{
-                          width: isLargeScreen ? 52 : 44,
-                          height: isLargeScreen ? 60 : 52,
-                          borderRadius: 12, borderWidth: 2,
-                          borderColor: focusedOtpIndex === i 
-                            ? colors.accentCyan 
-                            : digit 
-                            ? colors.accentMint 
-                            : inputBorder,
-                          backgroundColor: inputBg,
-                          textAlign: 'center',
-                          fontSize: scaleFont(22), fontWeight: '700',
-                          color: colors.text,
-                          shadowColor: colors.accentCyan,
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: focusedOtpIndex === i ? 0.2 : 0,
-                          shadowRadius: 6,
+                          width: 48,
+                          height: 56,
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: "#1f1c2c",
+                          backgroundColor: "#0c0a15",
+                          textAlign: "center",
+                          fontSize: 24,
+                          color: "#ffffff",
+                          fontWeight: "700",
                         }}
                       />
                     ))}
                   </View>
-                  <Pressable onPress={handleResend} disabled={resending} style={{ alignItems: 'center', marginBottom: 8 }}>
-                    <Text style={{ color: colors.accentCyan, fontSize: scaleFont(12), fontWeight: '600' }}>
-                      {resending ? 'Sending…' : "Didn't receive it? Resend code"}
+                  <Pressable onPress={handleResend} disabled={resending}>
+                    <Text
+                      style={{
+                        color: "#c084fc",
+                        fontSize: 13,
+                        fontWeight: "600",
+                        marginBottom: 24,
+                      }}
+                    >
+                      {resending
+                        ? "Sending…"
+                        : "Didn't receive it? Resend code"}
                     </Text>
                   </Pressable>
                 </>
               ) : (
                 <>
-                  {/* ── Signup fields ──────────────────────────────────── */}
-                  {mode === 'signup' && (
-                    <>
-                      <Field label="Full name" value={name} onChangeText={setName}
-                        placeholder="Your full name" colors={colors} inputBg={inputBg}
-                        inputBorder={inputBorder} scaleFont={scaleFont} isLargeScreen={isLargeScreen}
-                        icon="person-outline" />
-                    </>
+                  {mode === "signup" && (
+                    <Field
+                      label="Full Name"
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Enter your full name"
+                      icon="person-outline"
+                    />
                   )}
-
-                  <Field label="Email" value={email} onChangeText={setEmail}
-                    placeholder="you@domain.com" keyboardType="email-address"
-                    autoCapitalize="none" colors={colors} inputBg={inputBg}
-                    inputBorder={inputBorder} scaleFont={scaleFont} isLargeScreen={isLargeScreen}
-                    icon="mail-outline" />
-
-                  {mode === 'signup' && (
-                    <Field label="Phone number" value={phone} onChangeText={setPhone}
-                      placeholder="+1 234 567 8900" keyboardType="phone-pad"
-                      colors={colors} inputBg={inputBg} inputBorder={inputBorder}
-                      scaleFont={scaleFont} isLargeScreen={isLargeScreen}
-                      icon="phone-portrait-outline" />
+                  <Field
+                    label="Email or Phone Number"
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter email or phone number"
+                    icon="person-outline"
+                  />
+                  {mode === "signup" && (
+                    <Field
+                      label="Phone number"
+                      value={phone}
+                      onChangeText={setPhone}
+                      placeholder="Enter phone number"
+                      icon="call-outline"
+                    />
                   )}
+                  <Field
+                    label="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter your password"
+                    icon="lock-closed-outline"
+                    secureTextEntry={!showPassword}
+                    rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
+                    onRightIconPress={() => setShowPassword(!showPassword)}
+                  />
 
-                  <Field label="Password" value={password} onChangeText={setPassword}
-                    placeholder="8+ characters" secureTextEntry
-                    colors={colors} inputBg={inputBg} inputBorder={inputBorder}
-                    scaleFont={scaleFont} isLargeScreen={isLargeScreen}
-                    icon="lock-closed-outline" last />
+                  {mode === "login" && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: -8,
+                        marginBottom: 32,
+                      }}
+                    >
+                      <Pressable
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                        onPress={() => setRememberMe(!rememberMe)}
+                      >
+                        <View
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 4,
+                            backgroundColor: rememberMe
+                              ? "#9333ea"
+                              : "transparent",
+                            borderWidth: rememberMe ? 0 : 1,
+                            borderColor: "#64748b",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {rememberMe && (
+                            <Ionicons
+                              name="checkmark"
+                              size={14}
+                              color="#ffffff"
+                            />
+                          )}
+                        </View>
+                        <Text
+                          style={{
+                            color: "#e2e8f0",
+                            fontSize: 13,
+                            marginLeft: 8,
+                          }}
+                        >
+                          Remember me
+                        </Text>
+                      </Pressable>
+                      <Pressable>
+                        <Text
+                          style={{
+                            color: "#c084fc",
+                            fontSize: 13,
+                            fontWeight: "500",
+                          }}
+                        >
+                          Forgot Password?
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
                 </>
               )}
 
-              {/* Error */}
               {error ? (
-                <View style={{ marginTop: 14, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(239,68,68,0.35)', backgroundColor: 'rgba(239,68,68,0.1)', padding: 10 }}>
-                  <Text style={{ color: colors.danger, fontSize: scaleFont(12), fontWeight: '500' }}>{error}</Text>
-                </View>
+                <Text
+                  style={{ color: "#ef4444", fontSize: 13, marginBottom: 16 }}
+                >
+                  {error}
+                </Text>
               ) : null}
 
-              {/* Submit Button with Gradient */}
               <Pressable
                 onPress={submit}
                 disabled={loading || !canSubmit}
                 style={({ pressed }) => ({
-                  marginTop: 24, borderRadius: 12,
-                  overflow: 'hidden',
-                  opacity: loading || !canSubmit ? 0.5 : pressed ? 0.88 : 1,
-                  shadowColor: colors.accentCyan,
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: isDark ? 0.3 : 0.1,
-                  shadowRadius: 10,
-                  elevation: 4,
+                  backgroundColor: "#9333ea",
+                  borderRadius: 12,
+                  height: 54,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: loading || !canSubmit ? 0.6 : pressed ? 0.9 : 1,
+                  marginBottom: 32,
                 })}
               >
-                <LinearGradient
-                  colors={isDark ? [colors.accentCyan, colors.accentMint] : [colors.accentCyan, colors.accentGlow]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    paddingVertical: isLargeScreen ? 18 : 16,
-                    alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  {loading ? (
-                    <ActivityIndicator color={isDark ? "#020617" : "#ffffff"} />
-                  ) : (
-                    <Text style={{ fontWeight: '800', color: isDark ? '#020617' : '#ffffff', fontSize: scaleFont(isLargeScreen ? 17 : 15), letterSpacing: 0.5 }}>
-                      {mode === 'otp' ? 'Verify & continue' : mode === 'signup' ? 'Create account' : 'Enter PowerRoute'}
+                {loading ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <>
+                    <Text
+                      style={{
+                        color: "#ffffff",
+                        fontSize: 16,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {mode === "login"
+                        ? "Login"
+                        : mode === "signup"
+                          ? "Sign up"
+                          : "Verify"}
                     </Text>
-                  )}
-                </LinearGradient>
+                    {mode === "login" && (
+                      <Ionicons
+                        name="arrow-forward"
+                        size={20}
+                        color="#ffffff"
+                        style={{ position: "absolute", right: 20 }}
+                      />
+                    )}
+                  </>
+                )}
               </Pressable>
 
-              {/* Mode switch */}
-              {mode !== 'otp' && (
-                <Pressable
-                  onPress={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setError(''); }}
-                  style={{ marginTop: 16 }}
-                >
-                  <Text style={{ textAlign: 'center', color: colors.accentCyan, fontSize: scaleFont(12), fontWeight: '600' }}>
-                    {mode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create account'}
-                  </Text>
-                </Pressable>
+              {mode === "login" && (
+                <>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 24,
+                    }}
+                  >
+                    <View
+                      style={{ flex: 1, height: 1, backgroundColor: "#1f1c2c" }}
+                    />
+                    <Text
+                      style={{
+                        color: "#64748b",
+                        marginHorizontal: 16,
+                        fontSize: 13,
+                      }}
+                    >
+                      or continue with
+                    </Text>
+                    <View
+                      style={{ flex: 1, height: 1, backgroundColor: "#1f1c2c" }}
+                    />
+                  </View>
+
+                  <Pressable
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 50,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "#1f1c2c",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <Ionicons name="logo-google" size={20} color="#ea4335" />
+                    <Text
+                      style={{
+                        color: "#ffffff",
+                        fontSize: 14,
+                        fontWeight: "600",
+                        marginLeft: 12,
+                      }}
+                    >
+                      Continue with Google
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: 50,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "#1f1c2c",
+                      marginBottom: 32,
+                    }}
+                  >
+                    <Ionicons name="logo-apple" size={20} color="#ffffff" />
+                    <Text
+                      style={{
+                        color: "#ffffff",
+                        fontSize: 14,
+                        fontWeight: "600",
+                        marginLeft: 12,
+                      }}
+                    >
+                      Continue with Apple
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      setMode("signup");
+                      setError("");
+                    }}
+                    style={{ alignItems: "center", marginBottom: 48 }}
+                  >
+                    <Text style={{ color: "#94a3b8", fontSize: 14 }}>
+                      Don't have an account?{" "}
+                      <Text style={{ color: "#c084fc", fontWeight: "600" }}>
+                        Sign up
+                      </Text>
+                    </Text>
+                  </Pressable>
+                </>
               )}
 
-              {mode === 'otp' && (
-                <Pressable onPress={() => { setMode('signup'); setError(''); }} style={{ marginTop: 16 }}>
-                  <Text style={{ textAlign: 'center', color: colors.textFaint, fontSize: scaleFont(12), fontWeight: '500' }}>
-                    ← Back to sign up
-                  </Text>
-                </Pressable>
-              )}
+              {/* Bottom Feature Icons Box */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  backgroundColor: "#0c0a15",
+                  borderRadius: 16,
+                  padding: 20,
+                  borderWidth: 1,
+                  borderColor: "#1f1c2c",
+                  marginBottom: 32,
+                }}
+              >
+                <FeatureIcon
+                  icon="location"
+                  color="#c084fc"
+                  label="Find Charging\nStations"
+                />
+                <FeatureIcon
+                  icon="flash"
+                  color="#c084fc"
+                  label="Fast & Reliable\nCharging"
+                />
+                <FeatureIcon
+                  icon="shield-checkmark"
+                  color="#c084fc"
+                  label="Safe & Secure\nJourney"
+                />
+                <FeatureIcon
+                  icon="people"
+                  color="#c084fc"
+                  label="Women Safety\nSupport"
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
-              <Text style={{ marginTop: 16, textAlign: 'center', color: colors.textFaint, fontSize: scaleFont(10), letterSpacing: 0.2 }}>
-                API: {getApiBaseUrl()}
-              </Text>
-            </GlassCard>
+        {/* Global Footer injected at the bottom of the left panel */}
+        <View
+          style={{
+            paddingVertical: 24,
+            paddingHorizontal: 32,
+            borderTopWidth: 1,
+            borderColor: "#1f1c2c",
+            backgroundColor: "#090812",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              gap: 32,
+              marginBottom: 16,
+            }}
+          >
+            <FooterItem icon="lock-closed" text="Secure Login" />
+            <FooterItem icon="shield-checkmark" text="Your Data is Protected" />
+            <FooterItem icon="headset" text="24/7 Support" />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </ScreenBackground>
+          <Text style={{ textAlign: "center", color: "#64748b", fontSize: 12 }}>
+            © 2024 Power Route. All rights reserved.
+          </Text>
+        </View>
+      </View>
+
+      {/* ── Right Panel (Image) ───────────────────────────── */}
+      {isDesktop && (
+        <View style={{ flex: 1, position: "relative" }}>
+          <ImageBackground
+            source={{
+              uri: "https://images.unsplash.com/photo-1662990640306-4b8cb8376de9?q=80&w=1200&auto=format&fit=crop",
+            }}
+            style={{ flex: 1, justifyContent: "center" }}
+            resizeMode="cover"
+          >
+            {/* Dark overlay to simulate neon look */}
+            <View
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                backgroundColor: "rgba(147, 51, 234, 0.3)",
+              }}
+            />
+            <View style={{ position: "absolute", top: 64, left: 64 }}>
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  borderWidth: 1,
+                  borderColor: "#a855f7",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 16,
+                }}
+              >
+                <Ionicons name="leaf-outline" size={24} color="#a855f7" />
+              </View>
+              <Text
+                style={{
+                  color: "#ffffff",
+                  fontSize: 24,
+                  fontWeight: "500",
+                  lineHeight: 34,
+                }}
+              >
+                Powering a{" "}
+                <Text style={{ color: "#c084fc", fontWeight: "700" }}>
+                  greener
+                </Text>
+                {"\n"}tomorrow, together.
+              </Text>
+            </View>
+          </ImageBackground>
+        </View>
+      )}
+    </View>
   );
 }
 
-// ── Reusable input field ──────────────────────────────────────────────────────
-function Field({ label, last, colors, inputBg, inputBorder, scaleFont, isLargeScreen, icon, ...inputProps }) {
-  const [focused, setFocused] = useState(false);
+// ── Helpers ──────────────────────────────────────────────────────────────
 
+function Field({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  icon,
+  secureTextEntry,
+  rightIcon,
+  onRightIconPress,
+}) {
   return (
-    <>
-      <Text style={{ marginBottom: 6, color: colors.textMuted, fontSize: scaleFont(isLargeScreen ? 13 : 12), fontWeight: '600', marginTop: 12 }}>
+    <View style={{ marginBottom: 20 }}>
+      <Text
+        style={{
+          color: "#e2e8f0",
+          fontSize: 13,
+          fontWeight: "600",
+          marginBottom: 8,
+        }}
+      >
         {label}
       </Text>
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: last ? 0 : 4,
-        width: '100%',
-        borderRadius: 12,
-        borderWidth: 1.5,
-        borderColor: focused ? colors.accentCyan : inputBorder,
-        backgroundColor: inputBg,
-        paddingHorizontal: 16,
-        shadowColor: colors.accentCyan,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: focused ? (colors.cardGlow ? 0.25 : 0.15) : 0,
-        shadowRadius: 8,
-      }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          height: 54,
+          borderRadius: 12,
+          backgroundColor: "#0c0a15",
+          borderWidth: 1,
+          borderColor: "#1f1c2c",
+          paddingHorizontal: 16,
+        }}
+      >
         {icon && (
           <Ionicons
             name={icon}
-            size={scaleFont(18)}
-            color={focused ? colors.accentCyan : colors.textFaint}
+            size={20}
+            color="#a855f7"
             style={{ marginRight: 12 }}
           />
         )}
         <TextInput
-          {...inputProps}
-          placeholderTextColor={colors.textFaint}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          style={{
-            flex: 1,
-            paddingVertical: isLargeScreen ? 16 : 14,
-            fontSize: scaleFont(15),
-            color: colors.text,
-          }}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor="#64748b"
+          secureTextEntry={secureTextEntry}
+          style={{ flex: 1, color: "#ffffff", fontSize: 14 }}
+          autoCapitalize="none"
         />
+        {rightIcon && (
+          <Pressable onPress={onRightIconPress}>
+            <Ionicons name={rightIcon} size={20} color="#64748b" />
+          </Pressable>
+        )}
       </View>
-    </>
+    </View>
   );
 }
+
+function FeatureIcon({ icon, color, label }) {
+  return (
+    <View style={{ alignItems: "center", width: 70 }}>
+      <Ionicons
+        name={icon}
+        size={24}
+        color={color}
+        style={{ marginBottom: 8 }}
+      />
+      <Text
+        style={{
+          color: "#e2e8f0",
+          fontSize: 10,
+          textAlign: "center",
+          lineHeight: 14,
+        }}
+      >
+        {label.replace("\\n", "\n")}
+      </Text>
+    </View>
+  );
+}
+
+function FooterItem({ icon, text }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <Ionicons
+        name={icon}
+        size={16}
+        color="#c084fc"
+        style={{ marginRight: 8 }}
+      />
+      <Text style={{ color: "#e2e8f0", fontSize: 12 }}>{text}</Text>
+    </View>
+  );
+}
+
