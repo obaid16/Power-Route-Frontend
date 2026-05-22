@@ -326,13 +326,8 @@ export function LiveMapScreen() {
               {[
                 { label: 'Home',     active: false, onPress: () => navigation.navigate('Home') },
                 { label: 'Map',      active: true,  onPress: () => {} },
-<<<<<<< HEAD
-                { label: 'Van',      active: false, onPress: () => navigation.navigate('ChargingVan') },
-                { label: 'Safety',   active: false, onPress: () => navigation.navigate('VoltPathShield') },
-=======
                 { label: 'Vehicles', active: false, onPress: () => navigation.navigate('ChargingVan') },
                 { label: 'Safety',   active: false, onPress: () => navigation.navigate('WomenSafety') },
->>>>>>> 908091840af87b304a3fa5e1c15ad3a7fe4bcfb4
                 { label: 'SOS',      active: false, onPress: () => navigation.navigate('EmergencySOS') },
               ].map(({ label, active, onPress }) => (
                 <Pressable key={label} onPress={onPress} style={{ alignItems: 'center', justifyContent: 'center', position: 'relative', height: 32 }}>
