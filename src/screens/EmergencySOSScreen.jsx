@@ -58,21 +58,47 @@ export function EmergencySOSScreen() {
   const [locShared, setLocShared] = useState(false);
 
   // Pulsing ring animation
-  const ring = useSharedValue(1);
-  const ringSize = sosButtonSize + (isLargeScreen ? 56 : isTablet ? 44 : 36);
+  const ring1 = useSharedValue(1);
+  const ring2 = useSharedValue(1);
+  const ring3 = useSharedValue(1);
+
+  const ringSize1 = sosButtonSize + (isLargeScreen ? 48 : isTablet ? 38 : 30);
+  const ringSize2 = sosButtonSize + (isLargeScreen ? 96 : isTablet ? 76 : 60);
+  const ringSize3 = sosButtonSize + (isLargeScreen ? 144 : isTablet ? 114 : 90);
 
   useEffect(() => {
-    ring.value = withRepeat(
-      withTiming(1.18, { duration: 950, easing: Easing.inOut(Easing.quad) }),
+    ring1.value = withRepeat(
+      withTiming(1.25, { duration: 1200, easing: Easing.out(Easing.ease) }),
       -1,
-      true,
+      false,
     );
-  }, [ring]);
+    ring2.value = withRepeat(
+      withTiming(1.45, { duration: 1600, easing: Easing.out(Easing.ease) }),
+      -1,
+      false,
+    );
+    ring3.value = withRepeat(
+      withTiming(1.65, { duration: 2000, easing: Easing.out(Easing.ease) }),
+      -1,
+      false,
+    );
+  }, [ring1, ring2, ring3]);
 
-  const ringStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: ring.value }],
-    opacity: 2.2 - ring.value,
+  const ringStyle1 = useAnimatedStyle(() => ({
+    transform: [{ scale: ring1.value }],
+    opacity: 1 - (ring1.value - 1) / 0.25,
   }));
+
+  const ringStyle2 = useAnimatedStyle(() => ({
+    transform: [{ scale: ring2.value }],
+    opacity: 1 - (ring2.value - 1) / 0.45,
+  }));
+
+  const ringStyle3 = useAnimatedStyle(() => ({
+    transform: [{ scale: ring3.value }],
+    opacity: 1 - (ring3.value - 1) / 0.65,
+  }));
+
 
   // ── SOS tap ────────────────────────────────────────────────────────────────
   const handleSOS = async () => {
@@ -154,11 +180,19 @@ export function EmergencySOSScreen() {
           disabled={loading}
           accessibilityRole="button"
           accessibilityLabel="Activate SOS emergency alert"
-          style={{ width: '100%', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}
+          style={{ width: '100%', alignItems: 'center', justifyContent: 'center', marginBottom: 28, height: ringSize3, minHeight: 220 }}
         >
           <Animated.View style={[
-            ringStyle,
-            { position: 'absolute', width: ringSize, height: ringSize, borderRadius: ringSize / 2, backgroundColor: 'rgba(244,63,94,0.18)' },
+            ringStyle3,
+            { position: 'absolute', width: ringSize3, height: ringSize3, borderRadius: ringSize3 / 2, backgroundColor: 'rgba(244,63,94,0.06)' },
+          ]} />
+          <Animated.View style={[
+            ringStyle2,
+            { position: 'absolute', width: ringSize2, height: ringSize2, borderRadius: ringSize2 / 2, backgroundColor: 'rgba(244,63,94,0.1)' },
+          ]} />
+          <Animated.View style={[
+            ringStyle1,
+            { position: 'absolute', width: ringSize1, height: ringSize1, borderRadius: ringSize1 / 2, backgroundColor: 'rgba(244,63,94,0.15)' },
           ]} />
           <LinearGradient
             colors={['#fb7185', '#f43f5e', '#be123c']}
@@ -167,6 +201,7 @@ export function EmergencySOSScreen() {
               alignItems: 'center', justifyContent: 'center',
               borderWidth: isLargeScreen ? 3 : 2, borderColor: 'rgba(255,255,255,0.3)',
               shadowColor: '#f43f5e', shadowOpacity: 0.6, shadowRadius: 24, elevation: 12,
+              position: 'absolute',
             }}
           >
             {loading ? (
@@ -180,10 +215,10 @@ export function EmergencySOSScreen() {
               </>
             )}
           </LinearGradient>
-          <Text style={{ textAlign: 'center', color: colors.textMuted, marginTop: 16, fontSize: scaleFont(13) }}>
-            Tap to activate emergency alert
-          </Text>
         </Pressable>
+        <Text style={{ textAlign: 'center', color: colors.textMuted, marginTop: 4, marginBottom: 24, fontSize: scaleFont(13) }}>
+          Tap to activate emergency alert
+        </Text>
 
         {/* Status message */}
         {msg ? (

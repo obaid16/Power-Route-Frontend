@@ -72,7 +72,7 @@ export function GlassCard({
         end={{ x: 1, y: 1 }}
         style={[styles.frameGradient, { borderRadius: br }, flexStyle]}
       >
-        {Platform.OS === 'ios' ? (
+        {Platform.OS === 'ios' || Platform.OS === 'web' ? (
           <BlurView
             intensity={blurIntensity}
             tint={blurTint}

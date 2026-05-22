@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import Animated, {
   Easing,
   runOnJS,
@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useResponsive } from '../../hooks/useResponsive';
 import { colors, radii } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
+
 
 export function DashboardBatteryHero({ batteryPct, rangeKm, ecoScore }) {
   const { scaleFont, isCompact, isLargeScreen, isTablet } = useResponsive();
@@ -92,13 +93,20 @@ export function DashboardBatteryHero({ batteryPct, rangeKm, ecoScore }) {
           }]}
         >
           <View style={styles.topRow}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1.2 }}>
               <Text className="font-bold uppercase tracking-[0.28em]" style={{ color: themeColors.accentCyan, fontSize: scaleFont(isLargeScreen ? 11 : 10) }}>State of charge</Text>
               <View className="mt-1 flex-row items-end">
                 <Text style={[styles.heroNum, { color: themeColors.text, fontSize: scaleFont(isLargeScreen ? 66 : isCompact ? 50 : 58), lineHeight: scaleFont(isLargeScreen ? 70 : isCompact ? 54 : 62) }]}>
                   {displayPct}
                 </Text>
                 <Text style={[styles.heroPct, { color: themeColors.accentCyan, fontSize: scaleFont(isLargeScreen ? 26 : 22), marginBottom: isLargeScreen ? 12 : 10 }]}>%</Text>
+              </View>
+
+              <View style={{ height: 12 }} />
+
+              <View style={{ flexDirection: 'row', gap: 16 }}>
+                <MiniStat label="Range" value={`${rangeKm}`} unit="km" isLarge={isLargeScreen} themeColors={themeColors} alignLeft={true} />
+                <MiniStat label="Eco" value={`${ecoScore}`} unit="" accent={true} isLarge={isLargeScreen} themeColors={themeColors} alignLeft={true} />
               </View>
             </View>
 
@@ -110,10 +118,30 @@ export function DashboardBatteryHero({ batteryPct, rangeKm, ecoScore }) {
               style={{ width: 1.5, height: '70%', alignSelf: 'center', marginHorizontal: 16 }}
             />
 
-            <View style={[styles.miniStatCol, { minWidth: isLargeScreen ? 88 : 76 }]}>
-              <MiniStat label="Range" value={`${rangeKm}`} unit="km" isLarge={isLargeScreen} themeColors={themeColors} />
-              <View style={{ height: isLargeScreen ? 14 : 12 }} />
-              <MiniStat label="Eco" value={`${ecoScore}`} unit="" accent={true} isLarge={isLargeScreen} themeColors={themeColors} />
+            {/* Cyber Car 3D Visual */}
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{
+                borderRadius: 16,
+                borderWidth: 1.5,
+                borderColor: themeColors.border,
+                overflow: 'hidden',
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                shadowColor: themeColors.accentCyan,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: isDark ? 0.35 : 0.1,
+                shadowRadius: 10,
+                width: '100%',
+                aspectRatio: 1.3,
+              }}>
+                <Image
+                  source={require('../../../assets/cyber_car.png')}
+                  style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+                />
+                <LinearGradient
+                  colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.6)']}
+                  style={StyleSheet.absoluteFill}
+                />
+              </View>
             </View>
           </View>
 
@@ -138,9 +166,9 @@ export function DashboardBatteryHero({ batteryPct, rangeKm, ecoScore }) {
   );
 }
 
-function MiniStat({ label, value, unit, accent, isLarge, themeColors }) {
+function MiniStat({ label, value, unit, accent, isLarge, themeColors, alignLeft }) {
   return (
-    <View style={styles.miniStat}>
+    <View style={[styles.miniStat, alignLeft && { alignItems: 'flex-start' }]}>
       <Text style={[styles.miniLabel, { color: themeColors.textFaint, fontSize: isLarge ? 11 : 10 }]}>{label}</Text>
       <Text style={[styles.miniValue, { color: themeColors.text, fontSize: isLarge ? 22 : 20 }, accent && { color: themeColors.accentMint }]}>
         {value}
@@ -149,6 +177,7 @@ function MiniStat({ label, value, unit, accent, isLarge, themeColors }) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   wrap: {

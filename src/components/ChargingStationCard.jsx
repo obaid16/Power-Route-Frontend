@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { useResponsive } from '../hooks/useResponsive';
 import { formatCurrency, formatDistance } from '../utils/format';
 import { colors, radii } from '../theme';
@@ -78,6 +79,61 @@ function FeaturedStationCard({ station, onPress, selected, style }) {
   const iconSizeMd = scaleFont(isLargeScreen ? 16 : 14);
   const iconSizeSm = scaleFont(isLargeScreen ? 15 : 13);
 
+  const cardContent = (
+    <>
+      <LinearGradient
+        colors={[themeColors.accentCyan, themeColors.accentMint]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.featAccentBar, { height: isLargeScreen ? 4 : 3 }]}
+      />
+      <View style={[styles.featBody, isLargeScreen && styles.featBodyLarge]}>
+        <View style={styles.featRowBetween}>
+          <Text style={[styles.featNetwork, { color: isDark ? 'rgba(0,217,126, 0.85)' : themeColors.accentCyan, flex: 1, minWidth: 0, paddingRight: 8, fontSize: scaleFont(isLargeScreen ? 11 : 10) }]} numberOfLines={1}>
+            {network}
+          </Text>
+          <View style={[styles.featKwPill, { backgroundColor: isDark ? 'rgba(0,217,126, 0.12)' : 'rgba(0,106,78, 0.08)', borderColor: isDark ? 'rgba(0,217,126, 0.22)' : 'rgba(0,106,78, 0.2)', paddingHorizontal: isLargeScreen ? 12 : 10, paddingVertical: isLargeScreen ? 5 : 4 }]}>
+            <Ionicons name="flash" size={iconSizeSm} color={themeColors.accentCyan} />
+            <Text style={[styles.featKwText, { color: isDark ? '#a5f3fc' : themeColors.accentCyan, fontSize: scaleFont(isLargeScreen ? 13 : 11) }]}>{station.maxKw} kW</Text>
+          </View>
+        </View>
+        <Text style={[styles.featTitle, { color: themeColors.text, fontSize: scaleFont(isLargeScreen ? 20 : 18), marginTop: isLargeScreen ? 12 : 10 }]} numberOfLines={2}>
+          {station.name}
+        </Text>
+        <Text style={[styles.featAddress, { color: themeColors.textFaint, fontSize: scaleFont(isLargeScreen ? 14 : 12), marginTop: isLargeScreen ? 8 : 6 }]} numberOfLines={1}>
+          {station.address}
+        </Text>
+        <View style={[styles.featMetaRow, { gap: isLargeScreen ? 14 : 10, marginTop: isLargeScreen ? 18 : 14 }]}>
+          <View style={styles.featMetaItem}>
+            <Ionicons name="navigate-outline" size={iconSizeMd} color={themeColors.textMuted} />
+            <Text style={[styles.featMetaText, { color: themeColors.textMuted, fontSize: scaleFont(isLargeScreen ? 14 : 12) }]}>{formatDistance(station.distanceKm)}</Text>
+          </View>
+          <View style={styles.featMetaItem}>
+            <Ionicons name="star" size={iconSizeMd} color={themeColors.warning} />
+            <Text style={[styles.featMetaText, { color: themeColors.textMuted, fontSize: scaleFont(isLargeScreen ? 14 : 12) }]}>{station.rating}</Text>
+          </View>
+          <View style={styles.featMetaItem}>
+            <Ionicons name="cash-outline" size={iconSizeMd} color={themeColors.textMuted} />
+            <Text style={[styles.featMetaText, { color: themeColors.textMuted, fontSize: scaleFont(isLargeScreen ? 14 : 12) }]}>{formatCurrency(price)}/kWh</Text>
+          </View>
+        </View>
+        <View style={[styles.featFooter, { marginTop: isLargeScreen ? 20 : 16 }]}>
+          <View style={[styles.featPortTrack, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(241, 245, 249, 1)', borderColor: isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(203, 213, 225, 0.8)', height: isLargeScreen ? 8 : 6 }]}>
+            <LinearGradient
+              colors={[themeColors.accentGlow, themeColors.accentCyan]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={[styles.featPortFill, { width: `${Math.round(availability * 100)}%` }]}
+            />
+          </View>
+          <Text style={[styles.featPortLabel, { color: themeColors.accentMint, fontSize: scaleFont(isLargeScreen ? 13 : 11), marginTop: isLargeScreen ? 10 : 8 }]}>
+            {station.availablePorts}/{station.totalPorts} ports live
+          </Text>
+        </View>
+      </View>
+    </>
+  );
+
   return (
     <Pressable
       onPress={onPress}
@@ -98,58 +154,15 @@ function FeaturedStationCard({ station, onPress, selected, style }) {
         end={{ x: 1, y: 0 }}
         style={[styles.featFrame, { shadowColor: themeColors.accentCyan }]}
       >
-        <View style={[styles.featInner, { backgroundColor: isDark ? 'rgba(8, 15, 28, 0.92)' : 'rgba(255, 255, 255, 0.95)' }]}>
-          <LinearGradient
-            colors={[themeColors.accentCyan, themeColors.accentMint]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.featAccentBar, { height: isLargeScreen ? 4 : 3 }]}
-          />
-          <View style={[styles.featBody, isLargeScreen && styles.featBodyLarge]}>
-            <View style={styles.featRowBetween}>
-              <Text style={[styles.featNetwork, { color: isDark ? 'rgba(0,217,126, 0.85)' : themeColors.accentCyan, flex: 1, minWidth: 0, paddingRight: 8, fontSize: scaleFont(isLargeScreen ? 11 : 10) }]} numberOfLines={1}>
-                {network}
-              </Text>
-              <View style={[styles.featKwPill, { backgroundColor: isDark ? 'rgba(0,217,126, 0.12)' : 'rgba(0,106,78, 0.08)', borderColor: isDark ? 'rgba(0,217,126, 0.22)' : 'rgba(0,106,78, 0.2)', paddingHorizontal: isLargeScreen ? 12 : 10, paddingVertical: isLargeScreen ? 5 : 4 }]}>
-                <Ionicons name="flash" size={iconSizeSm} color={themeColors.accentCyan} />
-                <Text style={[styles.featKwText, { color: isDark ? '#a5f3fc' : themeColors.accentCyan, fontSize: scaleFont(isLargeScreen ? 13 : 11) }]}>{station.maxKw} kW</Text>
-              </View>
-            </View>
-            <Text style={[styles.featTitle, { color: themeColors.text, fontSize: scaleFont(isLargeScreen ? 20 : 18), marginTop: isLargeScreen ? 12 : 10 }]} numberOfLines={2}>
-              {station.name}
-            </Text>
-            <Text style={[styles.featAddress, { color: themeColors.textFaint, fontSize: scaleFont(isLargeScreen ? 14 : 12), marginTop: isLargeScreen ? 8 : 6 }]} numberOfLines={1}>
-              {station.address}
-            </Text>
-            <View style={[styles.featMetaRow, { gap: isLargeScreen ? 14 : 10, marginTop: isLargeScreen ? 18 : 14 }]}>
-              <View style={styles.featMetaItem}>
-                <Ionicons name="navigate-outline" size={iconSizeMd} color={themeColors.textMuted} />
-                <Text style={[styles.featMetaText, { color: themeColors.textMuted, fontSize: scaleFont(isLargeScreen ? 14 : 12) }]}>{formatDistance(station.distanceKm)}</Text>
-              </View>
-              <View style={styles.featMetaItem}>
-                <Ionicons name="star" size={iconSizeMd} color={themeColors.warning} />
-                <Text style={[styles.featMetaText, { color: themeColors.textMuted, fontSize: scaleFont(isLargeScreen ? 14 : 12) }]}>{station.rating}</Text>
-              </View>
-              <View style={styles.featMetaItem}>
-                <Ionicons name="cash-outline" size={iconSizeMd} color={themeColors.textMuted} />
-                <Text style={[styles.featMetaText, { color: themeColors.textMuted, fontSize: scaleFont(isLargeScreen ? 14 : 12) }]}>{formatCurrency(price)}/kWh</Text>
-              </View>
-            </View>
-            <View style={[styles.featFooter, { marginTop: isLargeScreen ? 20 : 16 }]}>
-              <View style={[styles.featPortTrack, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(241, 245, 249, 1)', borderColor: isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(203, 213, 225, 0.8)', height: isLargeScreen ? 8 : 6 }]}>
-                <LinearGradient
-                  colors={[themeColors.accentGlow, themeColors.accentCyan]}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={[styles.featPortFill, { width: `${Math.round(availability * 100)}%` }]}
-                />
-              </View>
-              <Text style={[styles.featPortLabel, { color: themeColors.accentMint, fontSize: scaleFont(isLargeScreen ? 13 : 11), marginTop: isLargeScreen ? 10 : 8 }]}>
-                {station.availablePorts}/{station.totalPorts} ports live
-              </Text>
-            </View>
+        {Platform.OS === 'ios' || Platform.OS === 'web' ? (
+          <BlurView intensity={isDark ? 28 : 45} tint={isDark ? "dark" : "light"} style={[styles.blurFeat, { backgroundColor: isDark ? 'rgba(8, 15, 28, 0.82)' : 'rgba(255, 255, 255, 0.85)' }]}>
+            {cardContent}
+          </BlurView>
+        ) : (
+          <View style={[styles.featInner, { backgroundColor: isDark ? 'rgba(8, 15, 28, 0.92)' : 'rgba(255, 255, 255, 0.95)' }]}>
+            {cardContent}
           </View>
-        </View>
+        )}
       </LinearGradient>
     </Pressable>
   );
@@ -207,6 +220,10 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl - 1,
     overflow: 'hidden',
     backgroundColor: 'rgba(8, 15, 28, 0.92)',
+  },
+  blurFeat: {
+    borderRadius: radii.xl - 1,
+    overflow: 'hidden',
   },
   featAccentBar: {
     height: 3,

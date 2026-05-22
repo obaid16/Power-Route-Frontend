@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, StyleSheet, ScrollView, Text, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Pressable, Platform, ActivityIndicator } from 'react-native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/context/AuthContext';
 import { VoltDataProvider } from './src/context/VoltDataContext';
@@ -144,8 +144,14 @@ export default function App() {
     Inter_900Black,
   });
 
+  // Show a dark splash while fonts load — never a plain white screen
   if (!fontsLoaded) {
-    return null;
+    return (
+      <View style={{ flex: 1, backgroundColor: '#001B1B', alignItems: 'center', justifyContent: 'center' }}>
+        <StatusBar style="light" />
+        <ActivityIndicator size="large" color="#00D97E" />
+      </View>
+    );
   }
 
   return (

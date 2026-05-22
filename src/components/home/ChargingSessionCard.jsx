@@ -85,7 +85,7 @@ export function ChargingSessionCard({ chargeKw, timeToFullMin }) {
   return (
     <View style={[styles.wrap, { marginTop: isLargeScreen ? 24 : isTablet ? 20 : 18, shadowColor: themeColors.accentMint }]}>
       <LinearGradient colors={isDark ? ['rgba(0,217,126, 0.35)', 'rgba(52, 211, 153, 0.15)', 'rgba(15, 23, 42, 0.4)'] : ['rgba(0,106,78, 0.25)', 'rgba(16, 185, 129, 0.15)', 'rgba(240, 244, 248, 0.8)']} style={styles.borderGrad}>
-        {Platform.OS === 'ios' ? (
+        {Platform.OS === 'ios' || Platform.OS === 'web' ? (
           <BlurView intensity={isDark ? 22 : 40} tint={isDark ? "dark" : "light"} style={styles.blur}>
             {inner}
           </BlurView>

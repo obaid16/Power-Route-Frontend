@@ -64,13 +64,6 @@ export function VoltDataProvider({ children }) {
     return DEFAULT_MAP_CENTER;
   }, []);
 
-  const refreshLocation = useCallback(async () => {
-    const newCoord = await resolveLocation();
-    setUserCoord(newCoord);
-    if (isAuthenticated) {
-  await refresh();
-}
-  }, [isAuthenticated, resolveLocation]);
 
   const refresh = useCallback(async () => {
     if (!isAuthenticated) {
@@ -118,7 +111,12 @@ export function VoltDataProvider({ children }) {
     }
   }, [isAuthenticated, user, resolveLocation]);
 
-      // duplicate refresh logic removed
+  const refreshLocation = useCallback(async () => {
+    await resolveLocation();
+    if (isAuthenticated) await refresh();
+  }, [resolveLocation, isAuthenticated, refresh]);
+
+  // duplicate refresh logic removed
 
   useEffect(() => {
     if (isAuthenticated && user) refresh();
