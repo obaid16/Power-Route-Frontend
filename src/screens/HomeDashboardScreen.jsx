@@ -59,43 +59,56 @@ export function HomeDashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* ── Desktop / Tablet Nav Bar ──────────────────────────────────── */}
+        {/* ── Desktop / Tablet Nav Bar (ELECTRA) ───────────────────────── */}
         {(isDesktop || isTablet) && (
-          <View style={[styles.navBar, { borderBottomColor: C.borderSoft }]}>
+          <View style={[styles.navBarPill, { backgroundColor: isDark ? '#060810' : '#ffffff', borderColor: C.borderSoft }]}>
             {/* Brand */}
             <View style={styles.navBrand}>
-              <View style={[styles.navLogo, { backgroundColor: C.accentCyan }]}>
-                <Ionicons name="flash" size={14} color="#fff" />
+              <View style={[styles.navLogoElectra]}>
+                <Ionicons name="flash" size={14} color="#ffffff" />
               </View>
               <Text style={[styles.navBrandText, { color: C.text }]}>
-                {isDark ? 'PowerRoute' : 'EV Map'}
+                ELECTRA
               </Text>
             </View>
 
             {/* Links */}
             <View style={styles.navLinks}>
               {[
-                { label: 'Home',        active: true,  onPress: () => {} },
-                { label: 'Find Charger', active: false, onPress: () => navigation.navigate('Map') },
-                { label: 'Services',    active: false,  onPress: () => stackNav.navigate('NearbyServices') },
-                { label: 'Safety',      active: false,  onPress: () => stackNav.navigate('WomenSafety') },
+                { label: 'Home',     active: true,  onPress: () => {} },
+                { label: 'Map',      active: false, onPress: () => navigation.navigate('Map') },
+                { label: 'Vehicles', active: false, onPress: () => {} },
+                { label: 'Safety',   active: false, onPress: () => stackNav.navigate('WomenSafety') },
               ].map(({ label, active, onPress }) => (
-                <Pressable key={label} onPress={onPress}>
+                <Pressable key={label} onPress={onPress} style={styles.navLinkContainer}>
                   <Text style={[styles.navLink, { color: active ? C.accentCyan : C.textMuted }]}>
                     {label}
                   </Text>
+                  {active && (
+                    <View style={[styles.navLinkActiveBar, { backgroundColor: C.accentCyan }]} />
+                  )}
                 </Pressable>
               ))}
             </View>
 
-            {/* Auth */}
-            <View style={styles.navAuth}>
-              <Pressable style={{ paddingHorizontal: 14, paddingVertical: 8 }}>
-                <Text style={{ color: C.text, fontWeight: '600', fontSize: scaleFont(14) }}>Login</Text>
+            {/* User Row / Actions */}
+            <View style={styles.navActions}>
+              <Pressable onPress={() => navigation.navigate('EmergencySOS')}>
+                <Text style={{ color: C.textMuted, fontSize: scaleFont(13), fontWeight: '600' }}>SOS</Text>
               </Pressable>
-              <Pressable style={[styles.navSignUp, { backgroundColor: C.accentCyan }]}>
-                <Text style={styles.navSignUpText}>Sign Up</Text>
+              
+              <Pressable onPress={() => stackNav.navigate('Notifications')}>
+                <Ionicons name="notifications" size={18} color={C.textMuted} />
               </Pressable>
+              
+              <ThemeToggle size="sm" showLabel={false} />
+              
+              <View style={styles.avatarWrap}>
+                <Image 
+                  source={{ uri: 'https://i.pravatar.cc/100?img=47' }} 
+                  style={styles.avatarImg} 
+                />
+              </View>
             </View>
           </View>
         )}
@@ -146,112 +159,74 @@ export function HomeDashboardScreen() {
           </View>
         </View>
 
-        {/* ── Hero Block ───────────────────────────────────────────────── */}
+        {/* ── Landing Page Hero Block ───────────────────────────────────────── */}
         <View style={[
           styles.hero,
-          (isDesktop || isTablet) && { flexDirection: 'row', gap: 32, alignItems: 'center' }
+          (isDesktop || isTablet) && { flexDirection: 'row', gap: 40, alignItems: 'center', marginTop: 20 }
         ]}>
-          {/* Left: text + search */}
-          <View style={{ flex: 1.2, minWidth: 0 }}>
-            <Text style={[styles.heroTitle, { color: C.text, fontSize: scaleFont(isLargeScreen ? 46 : 34) }]}>
-              {isDark ? 'Powering the\n' : 'Find EV Charging\n'}
-              <Text style={{ color: C.accentCyan }}>
-                {isDark ? 'future.' : 'Stations Near You'}
+          {/* Left: Text & CTA */}
+          <View style={{ flex: 1.1, minWidth: 0, zIndex: 10 }}>
+            <Text style={[styles.heroTitle, { color: '#ffffff', fontSize: scaleFont(isLargeScreen ? 60 : 44), lineHeight: scaleFont(isLargeScreen ? 68 : 52) }]}>
+              Smart. Safe.{'\n'}
+              <Text style={{ color: C.accentPurple }}>
+                Sustainable.
               </Text>
             </Text>
 
-            <Text style={[styles.heroSub, { color: C.textMuted, fontSize: scaleFont(isLargeScreen ? 15 : 13) }]}>
-              {isDark
-                ? 'Find reliable EV stations, book slots, and travel worry-free.'
-                : 'Search, locate and navigate to the best EV charging stations.'}
+            <Text style={[styles.heroSub, { color: C.textMuted, fontSize: scaleFont(isLargeScreen ? 18 : 15), marginTop: 24, maxWidth: 380 }]}>
+              Empowering every journey{'\n'}with Electric Mobility.
             </Text>
 
-            {/* Search */}
-            <View style={[styles.searchBox, { backgroundColor: isDark ? C.bgElevated : '#fff', borderColor: C.border }]}>
-              <Ionicons name="search-outline" size={16} color={C.textFaint} style={{ marginLeft: 14 }} />
-              <TextInput
-                placeholder="Search station or location…"
-                placeholderTextColor={C.textFaint}
-                style={[styles.searchInput, { color: C.text, fontSize: scaleFont(13) }]}
-                onSubmitEditing={(e) => navigation.navigate('Map', { searchVal: e.nativeEvent.text })}
-              />
-              <Pressable
-                onPress={() => navigation.navigate('Map')}
-                style={({ pressed }) => [styles.searchBtn, { backgroundColor: C.accentCyan, opacity: pressed ? 0.85 : 1 }]}
-              >
-                <Text style={styles.searchBtnText}>Search</Text>
-              </Pressable>
-            </View>
-
-            {/* CTA pills */}
+            {/* CTA Buttons */}
             <View style={styles.heroCtas}>
               <Pressable
                 onPress={() => navigation.navigate('Map')}
-                style={({ pressed }) => [styles.ctaPill, { backgroundColor: C.accentCyan, opacity: pressed ? 0.85 : 1 }]}
+                style={({ pressed }) => [
+                  styles.ctaPrimary, 
+                  { backgroundColor: C.accentPurple, opacity: pressed ? 0.85 : 1 }
+                ]}
               >
-                <Ionicons name="map-outline" size={14} color="#fff" />
-                <Text style={styles.ctaPillText}>Live Map</Text>
+                <Text style={styles.ctaPrimaryText}>Get Started</Text>
               </Pressable>
               <Pressable
-                onPress={() => stackNav.navigate('AIRecommend')}
-                style={({ pressed }) => [styles.ctaGhost, { borderColor: C.border, opacity: pressed ? 0.85 : 1 }]}
+                onPress={() => {}}
+                style={({ pressed }) => [
+                  styles.ctaSecondary, 
+                  { borderColor: 'rgba(255,255,255,0.2)', opacity: pressed ? 0.85 : 1 }
+                ]}
               >
-                <Ionicons name="sparkles-outline" size={14} color={C.accentCyan} />
-                <Text style={[styles.ctaGhostText, { color: C.text }]}>AI Assist</Text>
+                <Text style={[styles.ctaSecondaryText, { color: '#ffffff' }]}>Learn More</Text>
               </Pressable>
             </View>
           </View>
 
-          {/* Right: car image */}
+          {/* Right: Car Image */}
           <View style={styles.heroImgWrap}>
-            <View style={[styles.heroImgCard, { borderColor: C.border, backgroundColor: isDark ? C.bgCard : '#f8f8ff' }]}>
-              <Image
-                source={require('../../assets/cyber_car.png')}
-                style={styles.heroImg}
-              />
-            </View>
+            <Image
+              source={require('../../assets/cyber_car.png')}
+              style={styles.heroImg}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
-        {/* ── Stats Strip ──────────────────────────────────────────────── */}
-        <View style={[styles.statsStrip, { backgroundColor: isDark ? C.bgElevated : '#fff', borderColor: C.borderSoft }]}>
+        {/* ── Feature Cards Row ──────────────────────────────────────────── */}
+        <View style={[styles.featureRow, (isDesktop || isTablet) && { flexDirection: 'row', marginTop: 20 }]}>
           {[
-            { value: '25K+', label: 'Active Users' },
-            { value: '12K+', label: 'Stations' },
-            { value: '98%',  label: 'Uptime' },
-            { value: '4.8★', label: 'Rating', accent: true },
-          ].map(({ value, label, accent }, i, arr) => (
-            <React.Fragment key={label}>
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: accent ? C.accentCyan : C.text, fontSize: scaleFont(22) }]}>
-                  {value}
-                </Text>
-                <Text style={[styles.statLabel, { color: C.textMuted, fontSize: scaleFont(10) }]}>{label}</Text>
-              </View>
-              {i < arr.length - 1 && (
-                <View style={[styles.statDivider, { backgroundColor: C.borderSoft }]} />
-              )}
-            </React.Fragment>
-          ))}
-        </View>
-
-        {/* ── Feature Cards ────────────────────────────────────────────── */}
-        <View style={[styles.featureRow, (isDesktop || isTablet) && { flexDirection: 'row' }]}>
-          {[
-            { icon: 'radio-button-on-outline', title: 'Live Availability', sub: 'Real-time slot status' },
-            { icon: 'navigate-circle-outline', title: 'Smart Routing',     sub: 'Fastest paths to charge' },
-            { icon: 'shield-checkmark-outline', title: 'Safe & Secure',    sub: 'Verified, lit stations' },
-            { icon: 'headset-outline',          title: '24/7 Support',     sub: 'Always here for you' },
-          ].map(({ icon, title, sub }) => (
+            { icon: 'leaf', title: 'Eco Friendly', sub: 'Zero emission\nfor a better planet', color: '#10b981' },
+            { icon: 'phone-portrait-outline', title: 'Smart Charging', sub: 'Find, book and\ncharge anywhere', color: '#f59e0b' },
+            { icon: 'person', title: 'Women Safety', sub: 'Your safety,\nour priority', color: '#a855f7' },
+            { icon: 'location', title: 'Real-time Updates', sub: 'Live tracking and\nvehicle insights', color: '#6366f1' },
+          ].map(({ icon, title, sub, color }) => (
             <View
               key={title}
-              style={[styles.featureCard, { backgroundColor: isDark ? C.bgElevated : '#fff', borderColor: C.borderSoft }]}
+              style={[styles.featureCardMock, { backgroundColor: isDark ? '#0b0f19' : '#ffffff', borderColor: C.borderSoft }]}
             >
-              <View style={[styles.featureIcon, { backgroundColor: `${C.accentCyan}18` }]}>
-                <Ionicons name={icon} size={18} color={C.accentCyan} />
+              <View style={styles.featureIconWrap}>
+                <Ionicons name={icon} size={24} color={color} />
               </View>
-              <Text style={[styles.featureTitle, { color: C.text, fontSize: scaleFont(13) }]}>{title}</Text>
-              <Text style={[styles.featureSub, { color: C.textFaint, fontSize: scaleFont(11) }]}>{sub}</Text>
+              <Text style={[styles.featureTitleMock, { color: C.text, fontSize: scaleFont(15) }]}>{title}</Text>
+              <Text style={[styles.featureSubMock, { color: C.textMuted, fontSize: scaleFont(12) }]}>{sub}</Text>
             </View>
           ))}
         </View>
@@ -427,19 +402,42 @@ const styles = StyleSheet.create({
   flex:   { flex: 1 },
   scroll: { paddingTop: 8 },
 
-  // ── Nav Bar ──
-  navBar: {
+  // ── Nav Bar (ELECTRA) ──
+  navBarPill: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    borderBottomWidth: 1, paddingBottom: 14, marginBottom: 20,
+    borderWidth: 1, borderRadius: 999,
+    paddingHorizontal: 16, paddingVertical: 10,
+    marginBottom: 20,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5,
   },
-  navBrand:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  navLogo:      { width: 26, height: 26, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  navBrandText: { fontSize: 18, fontWeight: '900', letterSpacing: -0.5 },
-  navLinks:     { flexDirection: 'row', alignItems: 'center', gap: 28 },
-  navLink:      { fontWeight: '600', fontSize: 14 },
-  navAuth:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  navSignUp:    { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  navSignUpText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  navLogoElectra: { 
+    width: 28, height: 28, borderRadius: 14, 
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#8b5cf6', // purple accent
+  },
+  navBrandText: { fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
+  navLinks: { flexDirection: 'row', alignItems: 'center', gap: 32 },
+  navLinkContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    height: 32,
+  },
+  navLink: { fontWeight: '700', fontSize: 13 },
+  navLinkActiveBar: {
+    position: 'absolute',
+    bottom: -4,
+    width: '100%',
+    height: 2,
+    borderRadius: 2,
+  },
+  navActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  avatarWrap: {
+    width: 32, height: 32, borderRadius: 16,
+    overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+  },
+  avatarImg: { width: '100%', height: '100%', resizeMode: 'cover' },
 
   // ── User Row ──
   userRow:      { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingTop: 6 },
@@ -458,61 +456,37 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239,68,68,0.08)',
   },
 
-  // ── Hero ──
+  // ── Hero (Landing Page Mock) ──
   hero:         { marginBottom: 28 },
-  heroTitle:    { fontWeight: '900', letterSpacing: -1, lineHeight: undefined },
-  heroSub:      { marginTop: 10, lineHeight: 20, fontWeight: '500', maxWidth: 480 },
-  searchBox: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderRadius: 12,
-    padding: 4, marginTop: 18, maxWidth: 460,
+  heroTitle:    { fontWeight: '900', letterSpacing: -1.5 },
+  heroSub:      { lineHeight: 24, fontWeight: '500' },
+  heroCtas:     { flexDirection: 'row', gap: 12, marginTop: 32 },
+  ctaPrimary: {
+    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 8,
+    alignItems: 'center', justifyContent: 'center',
   },
-  searchInput:  { flex: 1, paddingHorizontal: 10, paddingVertical: 9 },
-  searchBtn:    { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 9 },
-  searchBtnText:{ color: '#fff', fontWeight: '700', fontSize: 13 },
-  heroCtas:     { flexDirection: 'row', gap: 10, marginTop: 14 },
-  ctaPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10,
+  ctaPrimaryText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  ctaSecondary: {
+    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 8, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
   },
-  ctaPillText:  { color: '#fff', fontWeight: '700', fontSize: 13 },
-  ctaGhost: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, borderWidth: 1,
-  },
-  ctaGhostText: { fontWeight: '700', fontSize: 13 },
+  ctaSecondaryText: { fontWeight: '700', fontSize: 14 },
   heroImgWrap:  { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 24 },
-  heroImgCard: {
-    borderRadius: 20, borderWidth: 1.5,
-    overflow: 'hidden', width: '100%', maxWidth: 420, aspectRatio: 1.4,
-  },
-  heroImg:      { width: '100%', height: '100%', resizeMode: 'cover' },
+  heroImg:      { width: '100%', height: 340 },
 
-  // ── Stats Strip ──
-  statsStrip: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
-    borderWidth: 1, borderRadius: 16,
-    paddingVertical: 18, paddingHorizontal: 8,
-    marginBottom: 24,
+  // ── Feature Cards (Landing Page Mock) ──
+  featureRow:  { flexDirection: 'column', gap: 16, marginBottom: 40 },
+  featureCardMock: {
+    flex: 1, minWidth: 150,
+    borderRadius: 16, borderWidth: 1,
+    padding: 20,
+    justifyContent: 'flex-start'
   },
-  statItem:    { flex: 1, alignItems: 'center' },
-  statValue:   { fontWeight: '900', letterSpacing: -0.5 },
-  statLabel:   { fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 4 },
-  statDivider: { width: 1, height: 36, opacity: 0.5 },
-
-  // ── Feature Cards ──
-  featureRow:  { flexDirection: 'column', gap: 10, marginBottom: 28 },
-  featureCard: {
-    flex: 1, minWidth: 140,
-    borderRadius: 14, borderWidth: 1,
-    padding: 16,
+  featureIconWrap: {
+    marginBottom: 20,
   },
-  featureIcon: {
-    width: 38, height: 38, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-  },
-  featureTitle: { fontWeight: '700', marginBottom: 4 },
-  featureSub:   { fontWeight: '500', lineHeight: 16 },
+  featureTitleMock: { fontWeight: '700', marginBottom: 8, letterSpacing: -0.3 },
+  featureSubMock:   { fontWeight: '500', lineHeight: 18 },
 
   // ── Section Label ──
   sectionLabel: { marginTop: 24, marginBottom: 14 },
