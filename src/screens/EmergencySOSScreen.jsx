@@ -9,7 +9,7 @@
  *  - Towing service contact
  */
 import { useState, useEffect } from 'react';
-import { Pressable, Text, View, Linking, ActivityIndicator, ScrollView } from 'react-native';
+import { Pressable, Text, View, Linking, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -20,7 +20,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScreenBackground, GlassCard } from '../components';
+import { ScreenBackground, GlassCard, ThemeToggle } from '../components';
 import { api } from '../services/apiClient';
 import { mapStationFromApi } from '../utils/mappers';
 import { useVoltApi } from '../hooks/useVoltApi';
@@ -157,68 +157,116 @@ export function EmergencySOSScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Back */}
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 8, marginBottom: 20 }}
-        >
-          <Ionicons name="chevron-back" size={scaleFont(22)} color={colors.accentCyan} />
-          <Text style={{ fontWeight: '600', color: colors.accentCyan, fontSize: scaleFont(14) }}>Back</Text>
-        </Pressable>
-
-        {/* Header */}
-        <Text style={{ fontWeight: '800', color: colors.text, fontSize: scaleFont(isLargeScreen ? 28 : 24), marginBottom: 4 }}>
-          Emergency SOS
-        </Text>
-        <Text style={{ color: colors.textMuted, fontSize: scaleFont(13), marginBottom: 28 }}>
-          One tap to alert emergency services and find help
-        </Text>
-
-        {/* ── SOS Button ──────────────────────────────────────────────────── */}
-        <Pressable
-          onPress={handleSOS}
-          disabled={loading}
-          accessibilityRole="button"
-          accessibilityLabel="Activate SOS emergency alert"
-          style={{ width: '100%', alignItems: 'center', justifyContent: 'center', marginBottom: 28, height: ringSize3, minHeight: 220 }}
-        >
-          <Animated.View style={[
-            ringStyle3,
-            { position: 'absolute', width: ringSize3, height: ringSize3, borderRadius: ringSize3 / 2, backgroundColor: 'rgba(244,63,94,0.06)' },
-          ]} />
-          <Animated.View style={[
-            ringStyle2,
-            { position: 'absolute', width: ringSize2, height: ringSize2, borderRadius: ringSize2 / 2, backgroundColor: 'rgba(244,63,94,0.1)' },
-          ]} />
-          <Animated.View style={[
-            ringStyle1,
-            { position: 'absolute', width: ringSize1, height: ringSize1, borderRadius: ringSize1 / 2, backgroundColor: 'rgba(244,63,94,0.15)' },
-          ]} />
-          <LinearGradient
-            colors={['#fb7185', '#f43f5e', '#be123c']}
-            style={{
-              width: sosButtonSize, height: sosButtonSize, borderRadius: sosButtonSize / 2,
-              alignItems: 'center', justifyContent: 'center',
-              borderWidth: isLargeScreen ? 3 : 2, borderColor: 'rgba(255,255,255,0.3)',
-              shadowColor: '#f43f5e', shadowOpacity: 0.6, shadowRadius: 24, elevation: 12,
-              position: 'absolute',
-            }}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" size={isLargeScreen ? 'large' : 'small'} />
-            ) : (
-              <>
-                <Ionicons name="warning" size={scaleFont(isLargeScreen ? 36 : 30)} color="#fff" />
-                <Text style={{ fontWeight: '900', color: '#fff', fontSize: scaleFont(isLargeScreen ? 28 : 24), letterSpacing: 2 }}>
-                  SOS
+        {/* ── Nav Bar (ELECTRA) ───────────────────────── */}
+        <View style={{
+          flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+          borderWidth: 1, borderRadius: 999,
+          paddingHorizontal: 16, paddingVertical: 10,
+          marginBottom: 20,
+          backgroundColor: isDark ? '#060810' : '#ffffff', borderColor: colors.borderSoft,
+          shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5,
+        }}>
+          {/* Brand */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#8b5cf6' }}>
+              <Ionicons name="flash" size={14} color="#ffffff" />
+            </View>
+            <Text style={{ fontSize: 16, fontWeight: '900', letterSpacing: 0.5, color: colors.text }}>
+              ELECTRA
+            </Text>
+          </View>
+          {/* Links */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 32 }}>
+            {[
+              { label: 'Home',     active: false, onPress: () => navigation.navigate('HomeDashboard') },
+              { label: 'Map',      active: false, onPress: () => navigation.navigate('Map') },
+              { label: 'Vehicles', active: false, onPress: () => {} },
+              { label: 'Safety',   active: false, onPress: () => navigation.navigate('WomenSafety') },
+              { label: 'SOS',      active: true,  onPress: () => {} },
+            ].map(({ label, active, onPress }) => (
+              <Pressable key={label} onPress={onPress} style={{ alignItems: 'center', justifyContent: 'center', position: 'relative', height: 32 }}>
+                <Text style={{ fontWeight: '700', fontSize: 13, color: active ? '#a855f7' : colors.textMuted }}>
+                  {label}
                 </Text>
-              </>
-            )}
-          </LinearGradient>
-        </Pressable>
-        <Text style={{ textAlign: 'center', color: colors.textMuted, marginTop: 4, marginBottom: 24, fontSize: scaleFont(13) }}>
-          Tap to activate emergency alert
-        </Text>
+                {active && <View style={{ position: 'absolute', bottom: -4, width: '100%', height: 2, borderRadius: 2, backgroundColor: '#a855f7' }} />}
+              </Pressable>
+            ))}
+          </View>
+          {/* Actions */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <Ionicons name="notifications" size={18} color={colors.textMuted} />
+            <ThemeToggle size="sm" showLabel={false} />
+            <View style={{ width: 32, height: 32, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
+              <Image source={{ uri: 'https://i.pravatar.cc/100?img=47' }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+            </View>
+          </View>
+        </View>
+
+        {/* ── SOS Dashboard Card ───────────────────────── */}
+        <View style={{
+          backgroundColor: isDark ? '#0d1117' : '#f8fafc',
+          borderRadius: 24, borderWidth: 1, borderColor: colors.borderSoft,
+          padding: isLargeScreen ? 32 : 20,
+          marginBottom: 32,
+          minHeight: 400,
+          justifyContent: 'space-between'
+        }}>
+          {/* Top text */}
+          <Text style={{ color: colors.text, fontSize: scaleFont(16), fontWeight: '600' }}>My Van</Text>
+
+          {/* Center Content Row */}
+          <View style={{ flexDirection: isLargeScreen ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: isLargeScreen ? 60 : 30, paddingVertical: 40 }}>
+            {/* SOS Button Area */}
+            <View style={{ width: ringSize3, height: ringSize3, alignItems: 'center', justifyContent: 'center' }}>
+              <Animated.View style={[ringStyle3, { position: 'absolute', width: ringSize3, height: ringSize3, borderRadius: ringSize3 / 2, backgroundColor: 'rgba(244,63,94,0.06)' }]} />
+              <Animated.View style={[ringStyle2, { position: 'absolute', width: ringSize2, height: ringSize2, borderRadius: ringSize2 / 2, backgroundColor: 'rgba(244,63,94,0.1)' }]} />
+              <Animated.View style={[ringStyle1, { position: 'absolute', width: ringSize1, height: ringSize1, borderRadius: ringSize1 / 2, backgroundColor: 'rgba(244,63,94,0.15)' }]} />
+              <Pressable
+                onPress={handleSOS}
+                disabled={loading}
+                accessibilityRole="button"
+                style={{
+                  width: sosButtonSize, height: sosButtonSize, borderRadius: sosButtonSize / 2,
+                  alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: '#ef4444',
+                  borderWidth: 6, borderColor: 'rgba(244,63,94,0.4)',
+                  shadowColor: '#f43f5e', shadowOpacity: 0.6, shadowRadius: 24, elevation: 12,
+                }}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" size={isLargeScreen ? 'large' : 'small'} />
+                ) : (
+                  <Text style={{ fontWeight: '900', color: '#fff', fontSize: scaleFont(isLargeScreen ? 28 : 24), letterSpacing: 1 }}>
+                    SOS
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+
+            {/* Right Text */}
+            <Text style={{ color: colors.text, fontSize: scaleFont(isLargeScreen ? 24 : 20), fontWeight: '500', maxWidth: 220, textAlign: isLargeScreen ? 'left' : 'center', lineHeight: 32 }}>
+              Press and Hold to send an SOS Alert
+            </Text>
+          </View>
+
+          {/* Bottom Bar: Location Sharing */}
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+            backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)',
+            borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12,
+            marginTop: 20
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name={locShared ? 'lock-open' : 'lock-closed'} size={16} color={colors.textFaint} />
+              <Text style={{ color: colors.textMuted, fontSize: scaleFont(13) }}>
+                {locShared ? 'Location shared with ' : 'Sharing location with '}<Text style={{ color: colors.text, fontWeight: '700' }}>3 contacts</Text>
+              </Text>
+            </View>
+            <Pressable onPress={shareLocation}>
+              <Text style={{ color: colors.text, fontSize: scaleFont(13), fontWeight: '600' }}>View</Text>
+            </Pressable>
+          </View>
+        </View>
 
         {/* Status message */}
         {msg ? (
@@ -253,36 +301,6 @@ export function EmergencySOSScreen() {
             </View>
           </GlassCard>
         ) : null}
-
-        {/* ── Share Location ───────────────────────────────────────────────── */}
-        <Pressable
-          onPress={shareLocation}
-          accessibilityRole="button"
-          style={({ pressed }) => ({
-            marginBottom: 24, borderRadius: 14, borderWidth: 1,
-            borderColor: locShared ? 'rgba(52,211,153,0.5)' : colors.border,
-            backgroundColor: locShared
-              ? 'rgba(52,211,153,0.12)'
-              : isDark ? 'rgba(0,217,126,0.08)' : 'rgba(0,106,78,0.08)',
-            padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12,
-            opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          <Ionicons
-            name={locShared ? 'location' : 'location-outline'}
-            size={22}
-            color={locShared ? colors.accentMint : colors.accentCyan}
-          />
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: '700', color: colors.text, fontSize: scaleFont(14) }}>
-              {locShared ? 'Location shared ✓' : 'Share live location'}
-            </Text>
-            <Text style={{ color: colors.textFaint, fontSize: scaleFont(11), marginTop: 2 }}>
-              Sends your GPS coordinates to emergency services
-            </Text>
-          </View>
-          {!locShared && <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />}
-        </Pressable>
 
         {/* ── Emergency Helplines ──────────────────────────────────────────── */}
         <Text style={{ fontWeight: '800', textTransform: 'uppercase', letterSpacing: 2.5, color: colors.textFaint, fontSize: scaleFont(11), marginBottom: 12 }}>
