@@ -75,6 +75,17 @@ export function AuthProvider({ children }) {
     setUser(res.data?.user ?? null);
   }, []);
 
+  // ── Social Login ──────────────────────────────────────────────────────────
+  const socialLogin = useCallback(async (email, name, id, provider) => {
+    const res = await api('/auth/social-login', {
+      method: 'POST',
+      body: { email, name, id, provider },
+      auth: false,
+    });
+    await setToken(res.token);
+    setUser(res.data?.user ?? null);
+  }, []);
+
   // ── Logout ────────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
@@ -89,11 +100,11 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       user, loading,
-      login, signup, verifyEmail, resendOtp, logout,
+      login, signup, verifyEmail, resendOtp, logout, socialLogin,
       isAuthenticated: Boolean(user),
       refreshUser: bootstrap,
     }),
-    [user, loading, login, signup, verifyEmail, resendOtp, logout, bootstrap]
+    [user, loading, login, signup, verifyEmail, resendOtp, logout, socialLogin, bootstrap]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

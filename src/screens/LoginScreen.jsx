@@ -19,7 +19,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 export function LoginScreen() {
   const navigation = useNavigation();
-  const { login, signup, verifyEmail, resendOtp } = useAuth();
+  const { login, signup, verifyEmail, resendOtp, socialLogin } = useAuth();
   const { isLargeScreen, isTablet, isMobile } = useResponsive();
 
   const isDesktop = isLargeScreen || (!isMobile && !isTablet);
@@ -95,6 +95,23 @@ export function LoginScreen() {
       setError(e.message || "Could not resend OTP");
     } finally {
       setResending(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider) => {
+    setError("");
+    setLoading(true);
+    try {
+      const socialEmail = email.trim() || `${provider}.user@example.com`;
+      const socialName = name.trim() || `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`;
+      const socialId = `${provider}-${Math.random().toString(36).substr(2, 9)}`;
+
+      await socialLogin(socialEmail, socialName, socialId, provider);
+      navigation.replace("Main");
+    } catch (e) {
+      setError(e.message || `Failed to sign in with ${provider}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -611,6 +628,8 @@ export function LoginScreen() {
                     </View>
 
                     <Pressable
+                      onPress={() => handleSocialLogin("google")}
+                      disabled={loading}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
@@ -621,6 +640,7 @@ export function LoginScreen() {
                         borderColor: "#1f1c2c",
                         backgroundColor: "#0c0a15",
                         marginBottom: 16,
+                        opacity: loading ? 0.6 : 1,
                       }}
                     >
                       <Ionicons name="logo-google" size={20} color="#ea4335" />
@@ -636,6 +656,8 @@ export function LoginScreen() {
                       </Text>
                     </Pressable>
                     <Pressable
+                      onPress={() => handleSocialLogin("apple")}
+                      disabled={loading}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
@@ -646,6 +668,7 @@ export function LoginScreen() {
                         borderColor: "#1f1c2c",
                         backgroundColor: "#0c0a15",
                         marginBottom: 32,
+                        opacity: loading ? 0.6 : 1,
                       }}
                     >
                       <Ionicons name="logo-apple" size={20} color="#ffffff" />
@@ -727,7 +750,7 @@ export function LoginScreen() {
         {isDesktop && (
           <View style={{ flex: 1.2, position: "relative" }}>
             <ImageBackground
-              source={require("../../assets/login_hero.png")}
+              source={require("../../assets/login_hero.jpg")}
               style={{
                 flex: 1,
                 justifyContent: "space-between",
